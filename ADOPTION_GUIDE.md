@@ -27,6 +27,12 @@
   - [ ] 1 个 health URL
   - [ ] 可选：1 个静态检查或 lint 命令
 - [ ] 验证：`tester --once` 生成 `issues.json` 且无重复刷屏（fingerprint）
+- [ ] 人类报告 `reports/latest_issues.md` **分栏**（见 [templates/reports/latest_issues.template.md](./templates/reports/latest_issues.template.md)）：
+  - [ ] **Needs human** — `open` 且 `requires_human`，或 `wontfix` + `terminal_reason: human_required`
+  - [ ] **Open / assigned** — 其余非终态
+  - [ ] **Resolved**
+  - [ ] **Closed / abandoned** — `wontfix` / `duplicate` 且非 `human_required`
+- [ ] 反模式：勿将全部 `wontfix` 标为「需人工」
 - [ ] 实现 **Scorer**（见 `templates/scorer_loop.pseudo.md`、`scorer_rubric.md`）
 - [ ] 配置 `scorer.min_value_score`、`scorer.min_qualified_per_round`
 - [ ] 验证：**当轮合格产出**（`value_qualified`）≥ `min_qualified_per_round`；全绿时仍有高分 `improvement`
@@ -73,9 +79,12 @@
 
 - [ ] 接入单元测试 / `npm test` / `pytest`
 - [ ] 接入 linter（ESLint、Ruff、mypy）
-- [ ] 可选：Playwright / Cypress **browser_e2e**
-  - [ ] 失败截图路径写入 `metadata.screenshot`
+- [ ] 可选：Playwright / Cypress **browser_e2e**（`touch_class: external`，须配置 `external_touch_guard`）
+  - [ ] **业务终态断言**（成功步骤 / 无错误文案 / 无 error 状态类），禁止「弹窗出现即 pass」
+  - [ ] 失败时 `metadata.e2e_outcome`: `pipeline_fail` | `infra_fail`；`pipeline_fail` 附 `metadata.screenshot`
   - [ ] 选择器避免重复 `#id`（LessonVerse 教训）
+  - [ ] L3：Verifier 能复跑 E2E **或** 策略表禁止 auto-resolve `browser_e2e`（见 ARCHITECTURE §5.1）
+- [ ] 阅读案例模式：[references/EXTERNAL_API_AND_E2E.md](./references/EXTERNAL_API_AND_E2E.md)
 - [ ] 遗留脚本纳入 `test_failure` 而非静默失败
 
 ---
@@ -106,6 +115,11 @@
 | Tester 直接改代码且无 verifier | 不可追溯、误修 |
 | 无 lease 的长任务 | 永久 assigned 堵塞队列 |
 | E2E 使用全局 `#id` 且 DOM 重复 | strict mode 误报（见 LessonVerse） |
+| 每轮 `/health` 打 external live API（OAuth `--test` 等） | 第三方限流/封号；性能误报 |
+| 无 liveness/readiness 分层 | 自动化与人工共用昂贵 health |
+| E2E「技术步骤完成」当 pass，忽略业务错误 UI | 假绿；用户故障不进 Issue Store |
+| 报告把所有 `wontfix` 标为「需人工」 | 维护者过载；真正阻塞项被淹没 |
+| 空轮加深时优先开全量 E2E 而非 lint/static | 加剧 external 触达与成本 |
 
 ---
 

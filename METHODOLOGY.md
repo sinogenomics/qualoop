@@ -123,6 +123,7 @@
 | 有产出但分值不足 | **低分轮**；Scorer 记 `value_insufficient`；加深检查直至 ≥`min_qualified_per_round` 条合格 |
 | 无产出 | **空轮**，加深检查 |
 | 仅重复 duplicate | 当轮无新合格 fingerprint → 按 **空轮** 处理 |
+| 渠道因触达预算被跳过 | 记 `reports/throttled_channels.jsonl`；**不算空轮**（见 §1.6） |
 
 Guardian 快照报告应列出当轮 **合格产出数**、**最高分**、**平均分**；连续空轮或低分轮应告警。
 
@@ -169,6 +170,42 @@ Tester 结束当轮 → Scorer 拉取 discovery_round_id 候选
 
 ---
 
+## 1.6 外部触达预算（Prerequisite: External Touch Budget）
+
+> **前提四（强烈建议，外部依赖项目视为不可妥协）**：凡会调用 **第三方 SaaS / 付费 API / 账号风控敏感** 服务的 discovery channel，必须声明触达成本等级，并遵守 **最低间隔**；不得绑在高频默认 health 环路上「顺带」打 live 探针。
+
+### 1.6.1 触达等级（touch_class）
+
+| touch_class | 含义 | 典型间隔 | 示例 |
+|-------------|------|----------|------|
+| `local` | 本机进程/文件，无外部账号 | Tester 60–300s | `py_compile`、静态扫描、localhost HTTP |
+| `dependency` | 自建依赖就绪，非用户账号 API | 分钟–小时 | DB ping、磁盘、本地 CLI `--version` |
+| `external` | 第三方 live 调用或完整用户旅程 | **小时级**（配置 `min_interval_sec`） | OAuth `--test`、完整 E2E 上传、create-resource API |
+
+每个 channel 在 `automation/config.json`（或等价）中标注 `touch_class`；`external` 须配置 `min_interval_sec`（可按 channel 覆盖，如 `browser_e2e`）。
+
+### 1.6.2 分层健康检查（layered health）
+
+避免单一 `/health` 同时承担 liveness 与 expensive readiness：
+
+| 层级 | 目的 | 建议 |
+|------|------|------|
+| **Liveness** | 进程存活、路由可达 | 高频；**不含** external live auth |
+| **Readiness** | 依赖可用 | 中频 |
+| **Deep / external** | 真实账号/API 可用 | 低频；独立 channel 或 query 参数（如 `?probe=light`） |
+
+Tester / Verifier 的**自动化默认**应使用 liveness；deep 探针仅在预算允许时运行。
+
+### 1.6.3 节流与空轮
+
+- 当 `external_touch_guard`（或等价）阻止本轮 E2E / live 探针时：写入 `reports/throttled_channels.jsonl`（channel、等待秒数、round_id）。
+- 该轮若仅有 local/dependency 渠道结果且无新 defect：**不因「未跑 E2E」记为空轮**（§1.4.2）。
+- §1.4.2 **加深检查** 优先级：元检查 / lint / static → local health → **最后** 才启用 external / 全量 E2E。
+
+参考实现：[templates/reference/external_touch_guard.py](./templates/reference/external_touch_guard.py)。
+
+---
+
 ## 2. 五角色模型（Five Roles）
 
 ```
@@ -199,7 +236,7 @@ Tester 结束当轮 → Scorer 拉取 discovery_round_id 候选
 - **Health checks**：HTTP/TCP、gRPC health、依赖就绪探针
 - **Unit / integration tests**：测试套件、契约校验脚本
 - **Static analysis**：lint、类型检查、已知腐化/混淆模式扫描
-- **Browser automation**：Playwright、Selenium 等端到端用户路径
+- **Browser automation**：Playwright、Selenium 等端到端用户路径（须 **业务终态断言**，见 §5 与 ADOPTION Phase 5；`touch_class: external`）
 
 输出字段见 `templates/issue_schema.json`：`severity`、`type`、`description`、`paths`、`fingerprint`、`metadata`。
 
@@ -291,8 +328,14 @@ Guardian 是 **运维可靠性** 层，与 Scheduler 的 **业务协调** 层正
 | `assigned` | Scheduler 已指定 Executor 与 lease |
 | `in_progress` | Executor 已认领（可选） |
 | `resolved` | 验证通过或执行者确认修复 |
-| `wontfix` | 接受风险或需产品决策 |
+| `wontfix` | 终态：不再自动处理（**不等于**「需人工」，见 `metadata.terminal_reason`） |
 | `duplicate` | 与已有 fingerprint 重复关闭 |
+
+**`wontfix` 与人工闸门**：
+
+- `wontfix` **不隐含** 需要人工操作。
+- 仅当 `metadata.terminal_reason == human_required` 和/或 `metadata.requires_human == true` 时，人类报告归入 **Needs human**。
+- 其他 `terminal_reason`（`abandoned`、`goal_misaligned`、`duplicate`、`low_value` 等）归入 **Closed / abandoned**，避免报告噪音。
 
 ### 3.2 Fingerprint 去重
 
@@ -327,14 +370,20 @@ Fixer 对无法自动修复的项（如文件腐化）应：
 
 | 渠道 | 适用 | Issue `type` 示例 | 注意 |
 |------|------|-------------------|------|
-| Health | 服务/API 存活 | `health` | 通常 **不 auto-fix**，仅标注需启服 |
-| Unit / legacy scripts | 仓库内测试入口 | `test_failure` | 区分「环境缺依赖」与「代码错误」 |
-| Static | lint、腐化标记、安全规则 | `static` | 高置信度规则才可 auto-fix |
-| Browser E2E | 关键用户旅程 | `browser_e2e` | 截图写入 `metadata.screenshot` |
+| Health | 服务/API 存活 | `health` | `touch_class: local` 或 `dependency`；通常 **不 auto-fix** |
+| Unit / legacy scripts | 仓库内测试入口 | `test_failure` | `local`；区分环境缺依赖与代码错误 |
+| Static | lint、腐化标记、安全规则 | `static` | `local`；高置信度规则才可 auto-fix |
+| Browser E2E | 关键用户旅程 | `browser_e2e` | `external`；须业务断言 + `metadata.e2e_outcome`；截图见 schema |
 | Improvement | 性能、可维护性建议 | `improvement` | 低优先级，improver 处理 |
 | Verification | 复验队列 | `verification` | 由 fixer/improver 衍生 |
 
-**组合策略**：Tester 一轮内按配置顺序执行（先 health 再 static 再 tests 再 browser），失败不阻断后续渠道（记录多条 Issue）。
+**Browser E2E 业务断言（防假绿）**：
+
+- **禁止** 仅以「到达某 DOM 步骤 / 出现弹窗」为 pass，当 UI 文案或状态类表明业务失败（错误 modal、`.status.error` 等）。
+- 推荐 `metadata.e2e_outcome`：`pass` | `infra_fail` | `pipeline_fail` | `throttled`。
+- `pipeline_fail` 时应附 `metadata.screenshot`。
+
+**组合策略**：Tester 一轮内按配置顺序执行（先 health 再 static 再 tests 再 browser），失败不阻断后续渠道（记录多条 Issue）。`external` 渠道受 §1.6 预算约束。
 
 ---
 

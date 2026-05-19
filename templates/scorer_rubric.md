@@ -37,6 +37,8 @@ value_qualified = (value_score >= min_value_score)
 | **40–59** | 低价值：勉强相关 | **不合格**；Tester 须加深检查或提出更好意见 |
 | **0–39** | 无效/背离 | **不合格**；记 `reports/rejected_suggestions.jsonl` 或 `goal_misaligned` |
 
+建议将低分或背离项标 `wontfix` 时写入 `metadata.terminal_reason`（`low_value`、`goal_misaligned`、`abandoned`）；仅确需人工时设 `human_required` 与 `requires_human: true`。
+
 ## 当轮合格（与 §1.4 合取）
 
 ```
