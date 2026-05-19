@@ -35,6 +35,16 @@
 
 > 没有目标文档？可以把括号里改成一句话：`(目标是：让 X 在 Y 场景下可靠运行)`。详见 [`templates/prompts/oneliner.md`](./templates/prompts/oneliner.md)。
 
+### 话术再短一档：配置一次个人规则
+
+不想每次写 URL？把 [`templates/personal/qualoop.personal-rule.md`](./templates/personal/qualoop.personal-rule.md) 里那段规则**粘到你 AI 工具的用户配置**一次（Cursor User Rules、`~/.claude/CLAUDE.md`、`~/.codex/AGENTS.md`、`~/.gemini/GEMINI.md` 等），之后新项目首句话术就变成：
+
+```
+Qualoop 接入，开发目标见 docs/GOALS.md
+```
+
+—— 不用再写 URL，不用再写 BOOTSTRAP.md，不用再写 tools/qualoop。AI 看到「Qualoop 接入」触发词会自动按个人规则去拉 BOOTSTRAP.md 完成接入。详见 [`templates/personal/`](./templates/personal/)。
+
 ---
 
 ## 跨 AI 工具落地（手动版本，供脚本/CI 使用）
@@ -112,6 +122,7 @@ Qualoop 检查                       # 每轮
 | [ADOPTION_GUIDE.md](./ADOPTION_GUIDE.md) | 在任意仓库落地的检查清单 |
 | [case-study/LESSONVERSE.md](./case-study/LESSONVERSE.md) | LessonVerse 实证：发现了什么、修了什么 |
 | [BOOTSTRAP.md](./BOOTSTRAP.md) | **写给 AI 的接入协议**：用户一句话 → AI 自动完成 submodule + 安装 + 进入契约 |
+| [templates/personal/](./templates/personal/) | **个人级 AI 规则**：粘贴一次到你的 AI 工具用户配置，所有新项目自动接入 |
 | [templates/AGENTS.md](./templates/AGENTS.md) | **跨 AI 工具权威契约**（推荐）：Codex/Cursor/Aider/Amp 原生读取 |
 | [templates/CLAUDE.md](./templates/CLAUDE.md) · [templates/GEMINI.md](./templates/GEMINI.md) | Claude Code / Gemini CLI 入口（一行 include → `AGENTS.md`） |
 | [templates/prompts/](./templates/prompts/) | 极短话术备查：`init.md` / `check.md` / `deepen.md` |
