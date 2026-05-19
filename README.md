@@ -1,8 +1,19 @@
 # Qualoop · 质环
 
 > [!IMPORTANT]
-> **AI 代理（Claude Code / Codex / Cursor / Gemini CLI 等）打开本仓库时请先读 [`AI-START-HERE.md`](./AI-START-HERE.md)**。
-> 那里告诉你：先跑一次幂等的「个人规则安装脚本」，之后用户在任何新项目里只需说一句 `Qualoop 接入，开发目标见 <path>`。
+> ## 致正在读这份 README 的 AI：你是被用户用链接引来的
+>
+> 用户给你这份仓库的链接，意思就是「按 Qualoop 方法论开发我的项目」。**按 Qualoop 约定，用户应当在同一条消息里也给了你「项目最终目标（North Star）」**——形式是下面两种之一：
+>
+> - **(A) 一份文档的路径**（如 `docs/GOALS.md`、`需求.md`）
+> - **(B) 一段一句话的自然语言描述**
+>
+> **请立刻回头看那条消息**：
+> - 找到了目标？ → 打开 [`AI-START-HERE.md`](./AI-START-HERE.md) 按 STEP 0–4 一气呵成完成接入与首轮检查。
+> - 没找到？ → 向用户问**一次**：「我需要本项目的开发目标：文档路径或一句话描述。」然后等待。
+>
+> 不确定时，可用辅助脚本机器化判断：
+> `bash <(curl -fsSL https://raw.githubusercontent.com/sinogenomics/qualoop/main/scripts/detect-goal.sh) "<原文消息>"`
 
 > 建议仓库目录名：`qualoop` · 开发目标见 [DEVELOPMENT_GOALS.md](./DEVELOPMENT_GOALS.md)
 

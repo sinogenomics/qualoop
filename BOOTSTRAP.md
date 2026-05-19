@@ -1,7 +1,14 @@
 # BOOTSTRAP.md — Qualoop AI 接入协议
 
 > [!IMPORTANT]
-> **Before following this protocol**, if you have not yet ensured the user's personal Qualoop rule is installed, read [`AI-START-HERE.md`](./AI-START-HERE.md) §STEP 1 and run the installer (it is idempotent). That step is what lets the user trigger Qualoop in any future project with just `Qualoop 接入，开发目标见 <path>`, no URL needed.
+> ## 致 AI：你来到这里 = 用户用 URL 引你来的；目标应当也已经给你了
+>
+> 在跑本协议之前，请确认两件事：
+>
+> 1. **你已经看过用户原消息了**，并且按 [`AI-START-HERE.md`](./AI-START-HERE.md) §STEP 0 解析出 **North Star**（一份文档路径或一句话）。**没解析出就别跑下面的步骤**——先回头看用户那条消息，找到目标；找不到就向用户问一次。
+> 2. 用户的**个人规则**已经装过（`AI-START-HERE.md` §STEP 1 是幂等的，直接跑一遍即可）。
+>
+> 这两件确认完毕，再继续 §0.5 → §1。
 
 > 本文档**写给 AI 编码代理**（Codex CLI、Cursor、Claude Code、Gemini CLI、Aider、Amp 等）。
 > 如果你正在为某个**业务项目**工作，并且用户对你说了类似下面这句话，请**按本文档的步骤执行**，不要追问，不要省略：
