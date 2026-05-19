@@ -23,11 +23,12 @@
 
 在人工开发、CI 与 AI 辅助并存的时代，单靠「人发现问题 → 人修」无法在规模上保持可观测性与持续改进。本方法论定义 **语言无关、可渐进采纳** 的五角色模型：发现（Tester）、**价值评分（Scorer）**、协调（Scheduler）、执行（Executors）、监督（Guardian），以 **Issue Store** 串联全链路。
 
-**首要前提**（见 [DEVELOPMENT_GOALS.md](./DEVELOPMENT_GOALS.md) §零、[METHODOLOGY.md](./METHODOLOGY.md) §1.3–§1.5）：
+**首要前提**（见 [DEVELOPMENT_GOALS.md](./DEVELOPMENT_GOALS.md) §零、[METHODOLOGY.md](./METHODOLOGY.md) §1.3–§1.6）：
 
 1. 意见须严谨、审慎，**朝向** 最终目标、**不背离** 目标  
 2. **每轮必须提出修改意见**；提不出 = 检查深度不足，须加深检查  
-3. **Scorer 对每条意见按 North Star 贡献度打分**；低于合格线 = 不合格，须继续检查直至有足够高分合格意见
+3. **Scorer 对每条意见按 North Star 贡献度打分**；低于合格线 = 不合格，须继续检查直至有足够高分合格意见  
+4. **外部依赖触达预算**（§1.6）：第三方 API / 全量 E2E 须节流；分层 health，避免高频 live 探针（见 [references/EXTERNAL_API_AND_E2E.md](./references/EXTERNAL_API_AND_E2E.md)）
 
 ---
 

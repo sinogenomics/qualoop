@@ -89,7 +89,28 @@
             "screenshot": { "type": "string" },
             "executor_note": { "type": "string" },
             "parent_issue": { "type": "string" },
-            "requires_human": { "type": "boolean" },
+            "requires_human": {
+              "type": "boolean",
+              "description": "True when a person must act (credentials, product decision). Not implied by wontfix alone."
+            },
+            "terminal_reason": {
+              "type": "string",
+              "enum": [
+                "human_required",
+                "abandoned",
+                "goal_misaligned",
+                "duplicate",
+                "expired",
+                "low_value",
+                "not_reproducible"
+              ],
+              "description": "Why a terminal status was chosen; required for wontfix in human reports"
+            },
+            "e2e_outcome": {
+              "type": "string",
+              "enum": ["pass", "infra_fail", "pipeline_fail", "throttled"],
+              "description": "Browser E2E business vs infrastructure result"
+            },
             "goal_alignment_note": {
               "type": "string",
               "description": "How this issue/fix advances project North Star; required before improver assign at L3+"

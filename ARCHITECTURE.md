@@ -172,6 +172,19 @@ Schema：`templates/issue_schema.json`。
 | verification | verifier |
 | browser_e2e | fixer（或专用 executor） |
 
+### 5.1 Verifier 策略（按 `issue.type`，L3 前必须选定）
+
+| `issue.type` | L3 推荐策略 | 说明 |
+|--------------|-------------|------|
+| `health` | 复跑 **liveness** URL（非 deep external） | 与 §1.6 分层 health 一致 |
+| `performance` | 复跑 `metadata.url`，prefer light probe | 避免 verifier 触发 external |
+| `test_failure` / `static` | 复跑对应脚本或规则 | 范围不扩大 |
+| `browser_e2e` | **A)** Verifier 复跑 E2E（受 `external_touch_guard`）**或** **B)** 禁止 auto-`resolved`，仅人工 + 截图 | 未实现 A 时不得静默积压 open |
+| `improvement` | 一般不 verifier；人工采纳 | 建议仅 jsonl 不入执行队列 |
+| `verification` | 父任务条件复测 | 见 METHODOLOGY §3.3 |
+
+默认采用 **B** 直至项目实现受预算约束的 E2E 复跑（参考 `templates/reference/external_touch_guard.py`）。
+
 ---
 
 ## 6. 可观测性
@@ -181,6 +194,7 @@ Schema：`templates/issue_schema.json`。
 | `logs/<role>_YYYYMMDD.log` | 运维 / 调试 |
 | `reports/latest_issues.md` | 人类每日巡检 |
 | `reports/screenshots/*.png` | E2E 失败分析 |
+| `reports/throttled_channels.jsonl` | external 渠道被预算跳过时的审计 |
 | `corruption_watchlist.txt` | 需 git 还原的文件列表 |
 
 ---

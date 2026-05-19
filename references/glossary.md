@@ -40,5 +40,11 @@
 | 干跑 | Dry run | Scheduler 只日志不写入分配 |
 | 快照报告 | Report snapshot | 如 latest_issues.md 的人类可读导出 |
 | 浏览器端到端 | Browser E2E | Playwright 等真实 UI 流程测试 |
+| 触达等级 | touch_class | local / dependency / external；决定 channel 最低运行间隔 |
+| 触达预算 | External touch budget | METHODOLOGY §1.6；限制第三方 API/E2E 调用频率 |
+| 节流渠道 | Throttled channel | 因预算跳过本轮的 external channel；记入 throttled_channels.jsonl |
+| 终态原因 | terminal_reason | wontfix/duplicate 子原因；区分需人工与自动放弃 |
+| E2E 结果 | e2e_outcome | pass / infra_fail / pipeline_fail / throttled |
+| 分层健康检查 | Layered health | liveness（高频廉价）与 readiness/deep（低频含 external）分离 |
 | 腐化扫描 | Corruption scan | 检测源码中已知混淆/损坏标记 |
 | 退避 | Backoff | 进程崩溃后重启等待时间的指数增长 |

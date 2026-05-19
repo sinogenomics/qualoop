@@ -34,10 +34,26 @@
   "browser_test_url": "http://localhost:8080/",
   "browser_headless": true,
   "browser_timeout_sec": 120,
+  "external_touch_guard": {
+    "enabled": true,
+    "min_interval_sec": 21600,
+    "state_file": "state/external_touch_usage.json",
+    "channels": {
+      "browser_e2e": { "min_interval_sec": 21600 },
+      "create_notebook_probe": { "min_interval_sec": 21600 }
+    }
+  },
+  "health_probes": {
+    "liveness_path": "/api/health",
+    "liveness_query": "probe=light",
+    "readiness_min_interval_sec": 3600
+  },
   "tester": {
     "run_legacy_scripts": false,
     "static_corruption_check": false,
-    "probe_localhost": true
+    "probe_localhost": true,
+    "health_notebooklm_mode": "light",
+    "create_notebook_probe_enabled": false
   },
   "scheduler": {
     "dry_run": true,
