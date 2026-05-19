@@ -23,18 +23,32 @@
 之后日常对任何 AI 说「**Qualoop 检查**」即可。
 
 ```powershell
-# Windows / PowerShell
+# Windows / PowerShell — pick ONE form of North Star
 cd path\to\your-app
 git submodule add https://github.com/sinogenomics/qualoop.git tools/qualoop
+
+# (a) one-line goal
 .\tools\qualoop\scripts\install-agents.ps1 -TargetProject . -NorthStar "<your one-line goal>"
+# (b) the goal is already in a document → embed it
+.\tools\qualoop\scripts\install-agents.ps1 -TargetProject . -NorthStarFile docs\GOALS.md
+# (c) just link to that document, do not embed (single source of truth)
+.\tools\qualoop\scripts\install-agents.ps1 -TargetProject . -NorthStarFile docs\GOALS.md -LinkOnly
 ```
 
 ```bash
-# macOS / Linux / WSL
+# macOS / Linux / WSL — pick ONE form of North Star
 cd path/to/your-app
 git submodule add https://github.com/sinogenomics/qualoop.git tools/qualoop
+
+# (a) one-line goal
 ./tools/qualoop/scripts/install-agents.sh --target . --north-star "<your one-line goal>"
+# (b) the goal is already in a document → embed it
+./tools/qualoop/scripts/install-agents.sh --target . --north-star-file docs/GOALS.md
+# (c) just link to that document, do not embed
+./tools/qualoop/scripts/install-agents.sh --target . --north-star-file docs/GOALS.md --link-only
 ```
+
+> If the goal file lives outside the business project, the installer will copy it to `NORTH_STAR.md` in the project root automatically.
 
 脚本会在业务项目根生成（每项都有用途，可被 git 追踪）：
 

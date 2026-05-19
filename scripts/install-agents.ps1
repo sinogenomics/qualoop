@@ -4,22 +4,29 @@
 # Does:
 #   1) Add qualoop as a git submodule at tools/qualoop (if -Submodule)
 #   2) Copy templates/AGENTS.md to <project>/AGENTS.md
-#      (optionally prepends a "North Star (from installer)" block if -NorthStar is given)
+#      The North Star block is filled from ONE of:
+#        -NorthStar "string"   : a single-line goal
+#        -NorthStarFile <path> : embed the whole file as the North Star
+#        -NorthStarFile <path> -LinkOnly : just link to it, do not embed
+#      If none is given, the placeholder remains.
 #   3) Copy templates/CLAUDE.md, templates/GEMINI.md (one-line includes)
 #   4) Write <project>/qualoop.json (shared by all tools)
 #   5) Optionally install Cursor legacy rule with -WithCursor
 #
-# Usage:
-#   .\scripts\install-agents.ps1 -TargetProject "D:\your-app" `
-#       [-NorthStar "your one-line goal"] `
-#       [-Submodule] `
-#       [-WithCursor]
+# Examples:
+#   .\scripts\install-agents.ps1 -TargetProject . -NorthStar "make X reliable in Y"
+#   .\scripts\install-agents.ps1 -TargetProject . -NorthStarFile docs\GOALS.md
+#   .\scripts\install-agents.ps1 -TargetProject . -NorthStarFile docs\GOALS.md -LinkOnly
 
 param(
     [Parameter(Mandatory = $true)]
     [string] $TargetProject,
 
     [string] $NorthStar = "",
+
+    [string] $NorthStarFile = "",
+
+    [switch] $LinkOnly,
 
     [string] $MethodologyRepo = "https://github.com/sinogenomics/qualoop.git",
 
@@ -39,6 +46,10 @@ if (-not (Test-Path $TargetProject)) {
 }
 $target = (Resolve-Path $TargetProject).Path
 
+if ($NorthStar -ne "" -and $NorthStarFile -ne "") {
+    throw "Pass only ONE of -NorthStar or -NorthStarFile, not both."
+}
+
 if ($Submodule) {
     if (-not (Test-Path (Join-Path $target ".git"))) {
         throw "Target is not a git repository: $target. Run 'git init' first or omit -Submodule."
@@ -57,12 +68,64 @@ if ($Submodule) {
     }
 }
 
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $agentsSrc = Join-Path $repoRoot "templates\AGENTS.md"
 $agentsDst = Join-Path $target "AGENTS.md"
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $agentsBody = [System.IO.File]::ReadAllText($agentsSrc, $utf8NoBom)
+
+function Build-Header-FromString([string]$text) {
+    return "# North Star (from installer)`r`n`r`n> Source: provided as a string at install time.`r`n`r`n- $text`r`n`r`n---`r`n`r`n"
+}
+
+function Build-Header-FromFile-Embed([string]$relPath, [string]$content) {
+    $h  = "# North Star (from installer)`r`n`r`n"
+    $h += "> Source: embedded copy of ``$relPath`` taken at install time.`r`n"
+    $h += "> If the source file changes, re-run the installer (or edit this section in sync).`r`n`r`n"
+    $h += "<!-- BEGIN: embedded from $relPath -->`r`n"
+    $h += $content
+    if (-not $content.EndsWith("`n")) { $h += "`r`n" }
+    $h += "<!-- END: embedded from $relPath -->`r`n`r`n"
+    $h += "---`r`n`r`n"
+    return $h
+}
+
+function Build-Header-FromFile-Link([string]$relPath) {
+    $h  = "# North Star (from installer)`r`n`r`n"
+    $h += "> Source: see [``$relPath``](./$relPath) (single source of truth, not embedded).`r`n"
+    $h += "> AI agents MUST read that file before producing any opinion this round.`r`n`r`n"
+    $h += "@$relPath`r`n`r`n"
+    $h += "---`r`n`r`n"
+    return $h
+}
+
+$header = ""
 if ($NorthStar -ne "") {
-    $header = "# North Star (from installer)`r`n`r`n> The following North Star was provided when this AGENTS.md was installed. It is the project's source of truth; replace it only when the project goal genuinely changes.`r`n`r`n- $NorthStar`r`n`r`n---`r`n`r`n"
+    $header = Build-Header-FromString $NorthStar
+}
+elseif ($NorthStarFile -ne "") {
+    if (-not (Test-Path $NorthStarFile)) {
+        throw "NorthStarFile does not exist: $NorthStarFile"
+    }
+    $nsAbs = (Resolve-Path $NorthStarFile).Path
+    $nsRel = ""
+    if ($nsAbs.StartsWith($target, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $nsRel = $nsAbs.Substring($target.Length).TrimStart('\','/') -replace '\\','/'
+    } else {
+        $destPath = Join-Path $target "NORTH_STAR.md"
+        Copy-Item -Force $nsAbs $destPath
+        $nsRel = "NORTH_STAR.md"
+        Write-Host "North Star source is outside the project; copied to: NORTH_STAR.md"
+    }
+
+    if ($LinkOnly) {
+        $header = Build-Header-FromFile-Link $nsRel
+    } else {
+        $nsContent = [System.IO.File]::ReadAllText($nsAbs, $utf8NoBom)
+        $header = Build-Header-FromFile-Embed $nsRel $nsContent
+    }
+}
+
+if ($header -ne "") {
     $agentsBody = $header + $agentsBody
 }
 [System.IO.File]::WriteAllText($agentsDst, $agentsBody, $utf8NoBom)
@@ -99,4 +162,3 @@ if ($WithCursor) {
 Write-Host ""
 Write-Host "Next: open the project in your AI tool of choice, then say:"
 Write-Host "  Qualoop init   (or in Chinese: Qualoop 初始化)"
-Write-Host "  (provide a North Star if AGENTS.md still shows the placeholder)"
