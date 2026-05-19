@@ -1,0 +1,56 @@
+# Qualoop · 质环
+
+> 建议仓库目录名：`qualoop` · 开发目标见 [DEVELOPMENT_GOALS.md](./DEVELOPMENT_GOALS.md)
+
+**持续自进化的质量闭环方法论** — 从 LessonVerse 自动化实践中抽象，适用于大多数中大型软件项目。
+
+## 愿景
+
+在人工开发、CI 与 AI 辅助并存的时代，单靠「人发现问题 → 人修」无法在规模上保持可观测性与持续改进。本方法论定义 **语言无关、可渐进采纳** 的五角色模型：发现（Tester）、**价值评分（Scorer）**、协调（Scheduler）、执行（Executors）、监督（Guardian），以 **Issue Store** 串联全链路。
+
+**首要前提**（见 [DEVELOPMENT_GOALS.md](./DEVELOPMENT_GOALS.md) §零、[METHODOLOGY.md](./METHODOLOGY.md) §1.3–§1.5）：
+
+1. 意见须严谨、审慎，**朝向** 最终目标、**不背离** 目标  
+2. **每轮必须提出修改意见**；提不出 = 检查深度不足，须加深检查  
+3. **Scorer 对每条意见按 North Star 贡献度打分**；低于合格线 = 不合格，须继续检查直至有足够高分合格意见
+
+未来优化方向（本仓库为方法论与模板，非运行时实现）：
+
+- 与 CI/CD（GitHub Actions、GitLab CI 等）双向同步 issue
+- 可插拔 Executor 契约（fixer / improver / verifier / custom）
+- 多项目 Guardian 联邦与指标大盘
+- 人机协作 SLA：自动修复置信度阈值与审批闸门
+
+## 文档地图
+
+| 文件 | 用途 |
+|------|------|
+| [DEVELOPMENT_GOALS.md](./DEVELOPMENT_GOALS.md) | **开发目标**、项目命名、边界与成功标准 |
+| [METHODOLOGY.md](./METHODOLOGY.md) | **核心方法**（三前提、五角色、生命周期、成熟度等） |
+| [templates/scorer_rubric.md](./templates/scorer_rubric.md) | Scorer 价值评分量表 |
+| [templates/scorer_loop.pseudo.md](./templates/scorer_loop.pseudo.md) | Scorer 主循环伪代码 |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | 角色职责、数据流、锁与冲突模型 |
+| [ADOPTION_GUIDE.md](./ADOPTION_GUIDE.md) | 在任意仓库落地的检查清单 |
+| [case-study/LESSONVERSE.md](./case-study/LESSONVERSE.md) | LessonVerse 实证：发现了什么、修了什么 |
+| [templates/qualoop.cursor.rule.mdc](./templates/qualoop.cursor.rule.mdc) | Cursor 项目规则模板 |
+| [templates/qualoop.cursor.json.example](./templates/qualoop.cursor.json.example) | Cursor 配置示例 |
+| [templates/](./templates/) | 配置、Issue JSON Schema、Guardian 伪代码 |
+| [references/glossary.md](./references/glossary.md) | 术语表 |
+| [reports/development-report.html](./reports/development-report.html) | **开发过程报告**（网页，含 Cursor 话术） |
+| [references/PROFESSIONAL_SETUP.md](./references/PROFESSIONAL_SETUP.md) | **专业用法**：一次配置，日常一句 |
+| [references/CURSOR_USAGE.md](./references/CURSOR_USAGE.md) | Cursor 长话术备查 |
+
+## 与具体项目的关系
+
+本目录 **独立** 于任何应用仓库。LessonVerse 实现位于 `lessonverse/automation/`；仅作为 [案例研究](./case-study/LESSONVERSE.md)，**无代码耦合**。
+
+## 快速开始（概念）
+
+1. 阅读 `METHODOLOGY.md` 理解五角色与成熟度模型；或打开 [开发过程报告](./reports/development-report.html) 总览。
+2. 按 `ADOPTION_GUIDE.md` 在目标项目中创建 `automation/`（或等价目录）。
+3. 复制 `templates/config.example.json` 与 `templates/issue_schema.json` 并按项目调整。
+4. 从 **L1**（仅 Tester + 人工）起步，再启用 Scheduler 与 Executors。
+
+## 许可与贡献
+
+方法论文档可自由在组织内复用与改编；引用 LessonVerse 案例时请注明来源路径，勿将本仓库与 LessonVerse 运行时混为一谈。

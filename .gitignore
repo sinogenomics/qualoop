@@ -1,0 +1,18 @@
+# Guardian / automation runtime outputs
+deployments/**/metrics/
+deployments/**/*.log
+deployments/**/run_log.json
+**/automation/logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+*.pem
+credentials.json

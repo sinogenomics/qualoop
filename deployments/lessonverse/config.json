@@ -1,0 +1,59 @@
+{
+  "project_root": "E:/20260502_MZH/lessonverse",
+  "backend_url": "http://localhost:5000",
+  "frontend_url": "http://localhost:8080",
+  "run_duration_hours": 10,
+  "deployment": {
+    "methodology_root": "e:/path/to/qualoop",
+    "run_log_path": "e:/path/to/qualoop/deployments/lessonverse/run_log.json",
+    "metrics_dir": "e:/path/to/qualoop/deployments/lessonverse/metrics"
+  },
+  "intervals_seconds": {
+    "tester": 360,
+    "scheduler": 120,
+    "fixer": 300,
+    "improver": 540,
+    "verifier": 300,
+    "report_snapshot": 300
+  },
+  "guardian": {
+    "run_duration_hours": 10,
+    "max_backoff_seconds": 300,
+    "initial_backoff_seconds": 5,
+    "health_stagger_seconds": 2
+  },
+  "executors": {
+    "fixer": {
+      "enabled": true,
+      "max_concurrent": 2,
+      "safe_only": true
+    },
+    "improver": {
+      "enabled": true,
+      "max_concurrent": 1
+    },
+    "verifier": {
+      "enabled": true,
+      "max_concurrent": 2
+    }
+  },
+  "browser_test_enabled": true,
+  "browser_test_url": "http://localhost:8080/index.html",
+  "browser_headless": true,
+  "browser_timeout_sec": 120,
+  "tester": {
+    "run_legacy_scripts": true,
+    "static_python_corruption_check": true,
+    "probe_localhost": true
+  },
+  "scheduler": {
+    "dry_run": false,
+    "default_lease_minutes": 30
+  },
+  "brain_enabled": false,
+  "brain_project_path": "E:/20260502_MZH/project_Learning",
+  "app": {
+    "name": "LessonVerse",
+    "description": "10h Qualoop optimization run"
+  }
+}

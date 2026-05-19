@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qualoop.local/issue.schema.json",
+  "title": "Qualoop Issue Store",
+  "type": "object",
+  "required": ["issues", "meta"],
+  "properties": {
+    "issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/issue" }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["version"]
+    }
+  },
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "required": [
+        "id",
+        "severity",
+        "type",
+        "description",
+        "status",
+        "paths",
+        "fingerprint",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "UUID"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "health",
+            "test_failure",
+            "static",
+            "browser_e2e",
+            "improvement",
+            "verification"
+          ],
+          "description": "Discovery channel / routing key"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "assigned",
+            "in_progress",
+            "resolved",
+            "wontfix",
+            "duplicate"
+          ]
+        },
+        "assigned_executor": {
+          "type": ["string", "null"],
+          "description": "fixer | improver | verifier | null"
+        },
+        "paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Repo-relative paths affected; used for locks and conflict detection"
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{16}$",
+          "description": "Dedupe key (e.g. SHA256 truncated)"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "url": { "type": "string" },
+            "screenshot": { "type": "string" },
+            "executor_note": { "type": "string" },
+            "parent_issue": { "type": "string" },
+            "requires_human": { "type": "boolean" },
+            "goal_alignment_note": {
+              "type": "string",
+              "description": "How this issue/fix advances project North Star; required before improver assign at L3+"
+            },
+            "goal_misaligned": {
+              "type": "boolean",
+              "description": "Set when a suggestion or change was rejected for working against North Star"
+            },
+            "output_kind": {
+              "type": "string",
+              "enum": ["defect", "improvement", "optimization"],
+              "description": "Round output category; improvement/optimization count toward mandatory round output when goal-aligned"
+            },
+            "discovery_round_id": {
+              "type": "string",
+              "description": "Tester round identifier for empty-round rate and reporting"
+            },
+            "value_score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "North Star contribution score; written only by Scorer"
+            },
+            "value_score_rationale": {
+              "type": "string",
+              "description": "Scorer explanation referencing rubric dimensions"
+            },
+            "value_qualified": {
+              "type": "boolean",
+              "description": "true if value_score >= min_value_score and alignment gates pass"
+            },
+            "value_insufficient": {
+              "type": "boolean",
+              "description": "true when score below threshold; triggers depth escalation"
+            },
+            "scored_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO8601 UTC when Scorer last scored this issue"
+            },
+            "scorer_round_id": {
+              "type": "string",
+              "description": "Scorer pass identifier, usually matches discovery_round_id"
+            }
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO8601 UTC"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lease_until": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Assignment expiry; Scheduler sets on assign"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

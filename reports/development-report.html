@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Qualoop · 开发过程报告</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+      --accent: #3d9cf5;
+      --accent-dim: #2563a8;
+      --ok: #3ecf8e;
+      --warn: #e8b84a;
+      --border: #2d3d52;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --mono: "Cascadia Code", "Consolas", monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.side { display: none; }
+    }
+
+    nav.side {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 1.5rem 1rem;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+    }
+    nav.side .brand {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+      color: var(--accent);
+    }
+    nav.side .sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+    nav.side ul { list-style: none; }
+    nav.side li { margin-bottom: 0.35rem; }
+    nav.side a {
+      display: block;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    nav.side a:hover, nav.side a.active {
+      background: var(--surface2);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    main { padding: 2rem 2.5rem 4rem; max-width: 960px; }
+
+    header.hero {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    header.hero h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    header.hero .en {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+    header.hero p.lead {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 42em;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+    .pill {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .pill strong { color: var(--text); }
+
+    section {
+      margin-bottom: 3rem;
+      scroll-margin-top: 1rem;
+    }
+    section h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.05rem;
+      margin: 1.25rem 0 0.6rem;
+      color: var(--accent);
+    }
+    p { margin-bottom: 0.85rem; color: var(--muted); }
+    p strong { color: var(--text); }
+
+    .timeline { position: relative; padding-left: 1.5rem; }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 0.35rem;
+      top: 0.4rem;
+      bottom: 0.4rem;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+      padding-left: 1rem;
+    }
+    .tl-item::before {
+      content: "";
+      position: absolute;
+      left: -1.22rem;
+      top: 0.45rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+    }
+    .tl-item.done::before { background: var(--ok); }
+    .tl-item.current::before {
+      background: var(--warn);
+      box-shadow: 0 0 0 3px rgba(232, 184, 74, 0.25);
+    }
+    .tl-date {
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-family: var(--mono);
+      margin-bottom: 0.2rem;
+    }
+    .tl-title { font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+    .tl-body { font-size: 0.9rem; color: var(--muted); }
+    .tl-tags { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .tl-tags span {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.45rem;
+      background: var(--surface2);
+      border-radius: 4px;
+      color: var(--muted);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.2rem;
+    }
+    .card h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .card p { font-size: 0.88rem; margin: 0; }
+
+    .flow {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    .flow-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .flow-node {
+      padding: 0.5rem 0.85rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .flow-node.highlight {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .flow-arrow { color: var(--muted); font-size: 1.1rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 1rem 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 500; }
+    td { color: var(--text); }
+    tr:hover td { background: var(--surface); }
+
+    .prereq {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      margin: 1rem 0;
+    }
+    .prereq h4 { color: var(--text); margin-bottom: 0.35rem; }
+
+    .tree {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      color: var(--muted);
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .tree .dir { color: var(--accent); }
+    .tree .file { color: var(--ok); }
+
+    footer.report-foot {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem 1.15rem;
+      margin: 1rem 0;
+      font-size: 0.92rem;
+    }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout strong { color: var(--text); }
+
+    ol.steps { margin: 1rem 0 1rem 1.25rem; color: var(--muted); }
+    ol.steps li { margin-bottom: 0.65rem; }
+    ol.steps li strong { color: var(--text); }
+
+    pre.code {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      color: #b8c9e0;
+      margin: 0.75rem 0 1rem;
+      line-height: 1.45;
+    }
+    pre.code .cmt { color: #6a7f99; }
+
+    ul.checklist { list-style: none; margin: 0.75rem 0; }
+    ul.checklist li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.45rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    ul.checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .phase-grid {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .phase-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+    }
+    .phase-block .ph-head {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.92rem;
+      margin-bottom: 0.35rem;
+    }
+    .phase-block p { margin: 0; font-size: 0.86rem; }
+
+    .prompt {
+      position: relative;
+      margin: 0.75rem 0 1.25rem;
+    }
+    .prompt-label {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    pre.prompt-body {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: all;
+      cursor: text;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="side" aria-label="章节导航">
+      <div class="brand">Qualoop</div>
+      <div class="sub">质环<br />开发过程报告</div>
+      <ul>
+        <li><a href="#overview">概览</a></li>
+        <li><a href="#usage">Cursor 怎么说</a></li>
+        <li><a href="#timeline">开发历程</a></li>
+        <li><a href="#prerequisites">三前提</a></li>
+        <li><a href="#roles">五角色</a></li>
+        <li><a href="#artifacts">交付物</a></li>
+        <li><a href="#maturity">成熟度</a></li>
+        <li><a href="#metrics">指标</a></li>
+        <li><a href="#docs">文档地图</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <header class="hero" id="overview">
+        <h1>Qualoop</h1>
+        <p class="en">质环 · 开发过程报告</p>
+        <p class="lead">
+          本页汇总 <strong>Qualoop</strong> 方法论仓库从问题抽象到体系成型的演进过程：
+          开发目标、三条不可妥协前提、五角色协作模型，以及配套模板与采纳清单。
+        </p>
+        <div class="meta-row">
+          <span class="pill"><strong>类型</strong> 方法论文档仓</span>
+          <span class="pill"><strong>来源</strong> LessonVerse 实践抽象</span>
+          <span class="pill"><strong>报告日期</strong> 2026-05-19</span>
+          <span class="pill"><strong>打开方式</strong> 浏览器直接打开本 HTML</span>
+        </div>
+      </header>
+
+      <section id="usage">
+        <h2>在 Cursor 里怎么说（业务项目专用）</h2>
+
+        <div class="callout">
+          <strong>专业做法（推荐）</strong>：一次配置，日常一句。见
+          <a href="../references/PROFESSIONAL_SETUP.md">PROFESSIONAL_SETUP.md</a>。
+          <br /><br />
+          <strong>配置一次</strong>：运行 <code>scripts/install-cursor-rule.ps1</code>，或将规则复制到业务项目 <code>.cursor/rules/</code>；
+          可选把本方法论文件夹<strong>添加到 Cursor 工作区</strong>（多根工作区）。<br />
+          <strong>日常只说</strong>：<code>Qualoop 检查</code>（首次说 <code>Qualoop 初始化</code>）。
+        </div>
+
+        <p style="font-size:0.9rem;color:var(--muted)">
+          下面长话术仅作备查，不必每次复制。工程清单：<a href="../ADOPTION_GUIDE.md">ADOPTION_GUIDE.md</a>。
+        </p>
+
+        <h3>第 0 步</h3>
+        <ul class="checklist">
+          <li>用 Cursor 打开<strong>业务项目</strong>文件夹</li>
+          <li>可选：复制 <code>templates/qualoop.cursor.rule.mdc</code> → 业务项目 <code>.cursor/rules/qualoop.mdc</code></li>
+        </ul>
+        <p>方法论路径（话术里请改成你的）：<code>e:/path/to/qualoop</code></p>
+
+        <h3>话术 1 · 第一次接入</h3>
+        <div class="prompt">
+          <span class="prompt-label">复制整段到 Cursor 聊天框</span>
+          <pre class="code prompt-body">本项目要接入 Qualoop（质环）。
+
+方法论仓库（只读，不要改）：
+e:/path/to/qualoop
+
+请先阅读：
+@tools/qualoop/DEVELOPMENT_GOALS.md 的「§零 首要前提」
+@tools/qualoop/METHODOLOGY.md 的 §1.3–§1.5 与 §2
+@tools/qualoop/ADOPTION_GUIDE.md Phase 0–1
+
+只在【当前业务项目】：
+1. 创建 automation/，生成 config.json（参考 templates/config.example.json）
+2. 实现 L1：IssueStore + Tester + Scorer + reports/latest_issues.md
+3. 遵守三前提：对齐、每轮必有产出、value_score≥60 才合格
+4. L1 不要大范围自动改业务代码
+
+完成后说明如何运行 tester/scorer --once，以及当轮几条 value_qualified。</pre>
+        </div>
+
+        <h3>话术 2 · 每轮检查（最常用）</h3>
+        <div class="prompt">
+          <span class="prompt-label">复制整段到 Cursor 聊天框</span>
+          <pre class="code prompt-body">按 Qualoop 在本项目跑【一轮】质量检查：
+
+@tools/qualoop/METHODOLOGY.md §1.3–§1.5
+
+必须：至少 1 条修改意见；每条 goal_alignment_note；Scorer 打分 value_score，≥60 为合格；
+当轮至少 1 条 value_qualified，否则加深检查直到有。禁止「没问题」式交白卷。
+
+输出 automation/issues.json 与 reports/latest_issues.md，并列出合格数、最高分。</pre>
+        </div>
+
+        <h3>话术 3 · 低分 / 空轮</h3>
+        <div class="prompt">
+          <span class="prompt-label">复制整段到 Cursor 聊天框</span>
+          <pre class="code prompt-body">上一轮 Qualoop 不合格：高分意见不足。请加深检查直到至少 1 条 value_score≥60 且对齐 North Star。
+参考 @tools/qualoop/METHODOLOGY.md §1.4.2。不要宣布「系统健康无需修改」。</pre>
+        </div>
+
+        <h3>话术 4 · 只改高分 Issue（L3，慎用）</h3>
+        <div class="prompt">
+          <span class="prompt-label">复制整段到 Cursor 聊天框</span>
+          <pre class="code prompt-body">仅处理 automation/issues.json 里 value_qualified=true 且已分配的 Issue。
+@tools/qualoop/METHODOLOGY.md §2.4
+改完后 verifier 复跑；无法验证则 resolved=false。</pre>
+        </div>
+
+        <h3>触发词</h3>
+        <table>
+          <thead><tr><th>建议说</th><th>不要说</th></tr></thead>
+          <tbody>
+            <tr><td>按 Qualoop 跑一轮检查</td><td>帮我看看有没有 bug</td></tr>
+            <tr><td>加深检查直到 value_qualified</td><td>随便 review 一下</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout warn" style="margin-top:1rem">
+          <strong>工程细节</strong>：目录结构、CI、验收表见 <a href="../ADOPTION_GUIDE.md">ADOPTION_GUIDE.md</a>。
+        </div>
+      </section>
+
+      <section id="timeline">
+        <h2>开发历程</h2>
+        <p>按时间线梳理本仓库在对话与迭代中形成的关键里程碑（方法论演进，非业务代码发布）。</p>
+        <div class="timeline">
+          <div class="tl-item done">
+            <div class="tl-date">阶段 0 · 问题来源</div>
+            <div class="tl-title">从 LessonVerse 自动化实践中发现共性痛点</div>
+            <div class="tl-body">
+              分散探测、多人/多 Agent 改同一文件、长运行脚本无人看护、Issue 无闭环——需要语言无关的编排方法论，而非绑定单一应用。
+            </div>
+            <div class="tl-tags">
+              <span>case-study</span><span>四角色雏形</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 1 · 目标澄清</div>
+            <div class="tl-title">编写 DEVELOPMENT_GOALS.md，确立 North Star 与命名</div>
+            <div class="tl-body">
+              对外品牌 <strong>Qualoop / 质环</strong>；明确仓库边界（非运行时、非 CI 替代）；
+              定义可观测、可协调、可验证、有节制、可持续五条最终目标。
+            </div>
+            <div class="tl-tags">
+              <span>DEVELOPMENT_GOALS</span><span>README</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 2 · 前提一</div>
+            <div class="tl-title">目标对齐：意见必须朝向最终目标</div>
+            <div class="tl-body">
+              METHODOLOGY §1.3：严谨、审慎、禁止为「表面变绿」削弱检测与锁机制；
+              引入 <code>goal_alignment_note</code>、<code>goal_misaligned</code> 等 Issue 元数据。
+            </div>
+            <div class="tl-tags">
+              <span>§1.3</span><span>issue_schema</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 3 · 前提二</div>
+            <div class="tl-title">每轮必有产出：空轮 = 检查深度不足</div>
+            <div class="tl-body">
+              METHODOLOGY §1.4：每轮须提出缺陷或改进意见；全绿时仍须产出 <code>improvement</code>；
+              空轮触发 channels 扩展、降阈值等加深策略；指标 <strong>empty round rate</strong>。
+            </div>
+            <div class="tl-tags">
+              <span>§1.4</span><span>empty_rounds.jsonl</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 4 · 前提三</div>
+            <div class="tl-title">新增 Scorer：按 North Star 贡献度打分</div>
+            <div class="tl-body">
+              模型由四角色扩展为<strong>五角色</strong>；专门智能体 Scorer 对每条意见 0–100 打分，
+              低于合格线不算有效产出；低分轮与空轮同样触发加深检查。
+            </div>
+            <div class="tl-tags">
+              <span>Scorer</span><span>scorer_rubric</span><span>value_score</span>
+            </div>
+          </div>
+
+          <div class="tl-item current">
+            <div class="tl-date">阶段 5 · 呈现</div>
+            <div class="tl-title">网页版开发过程报告（本页）</div>
+            <div class="tl-body">
+              将目标、历程、架构、交付物与采纳路径可视化，便于评审、 onboarding 与对外说明。
+            </div>
+            <div class="tl-tags">
+              <span>reports/development-report.html</span>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-date">阶段 6 · 规划</div>
+            <div class="tl-title">参考实现与 CI 联邦（未在本仓交付）</div>
+            <div class="tl-body">
+              与 GitHub Issues 双向同步、多项目 Guardian 联邦、LLM 桥接 improver、审批闸门等——见 README「未来优化方向」。
+            </div>
+            <div class="tl-tags">
+              <span>L4</span><span>roadmap</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="prerequisites">
+        <h2>三条首要前提</h2>
+        <p>同等不可妥协，合取决定「当轮检查是否合格」。</p>
+
+        <div class="prereq">
+          <h4>前提一 · 目标对齐（North Star）</h4>
+          <p>修改意见须严谨、审慎，推动系统朝五条最终目标前进，不得背离（如关检测清零 backlog）。</p>
+        </div>
+        <div class="prereq">
+          <h4>前提二 · 每轮必有产出（Inspection depth）</h4>
+          <p>每轮至少提出一条意见；提不出 = 深度不足。全绿时仍须产出对齐的 improvement，直至 Scorer 判定合格。</p>
+        </div>
+        <div class="prereq">
+          <h4>前提三 · 价值评分门槛（Scorer）</h4>
+          <p>专门智能体对每条意见按贡献度打分并记录；分值低于 <code>min_value_score</code> 为不合格，须继续检查直至有足够高分合格意见。</p>
+        </div>
+
+        <p><strong>合格一轮</strong>：当轮 <code>value_qualified</code> 数量 ≥ <code>min_qualified_per_round</code>（默认 ≥1），且每条通过对齐闸门。</p>
+      </section>
+
+      <section id="roles">
+        <h2>五角色协作模型</h2>
+        <div class="flow">
+          <div class="flow-row">
+            <span class="flow-node">Guardian<br /><small style="font-weight:400;color:var(--muted)">监督</small></span>
+          </div>
+          <div class="flow-row" style="margin-top:1rem">
+            <span class="flow-node">Tester</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node highlight">Scorer</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node">Scheduler</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-node">Executors</span>
+          </div>
+          <div class="flow-row" style="margin-top:0.75rem;font-size:0.8rem;color:var(--muted)">
+            发现 → 评分 → 分派（仅合格）→ fixer / improver / verifier
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card"><h4>Tester</h4><p>多渠道 discovery，写入 Issue Store，产出候选意见。</p></div>
+          <div class="card"><h4>Scorer</h4><p>唯一写入 value_score*；判定 value_qualified；低分触发加深。</p></div>
+          <div class="card"><h4>Scheduler</h4><p>唯一分配写入者；L2+ 仅分派合格 Issue；path lock + lease。</p></div>
+          <div class="card"><h4>Executors</h4><p>有界执行：fixer、improver、verifier；策略表约束 auto-fix。</p></div>
+          <div class="card"><h4>Guardian</h4><p>子进程监督、退避重启、报告快照。</p></div>
+          <div class="card"><h4>Issue Store</h4><p>中心化台账，串联发现→评分→分派→验证全链路。</p></div>
+        </div>
+      </section>
+
+      <section id="artifacts">
+        <h2>主要交付物</h2>
+        <table>
+          <thead>
+            <tr><th>类别</th><th>路径</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>开发目标</td><td>DEVELOPMENT_GOALS.md</td><td>三前提、North Star、成功标准</td></tr>
+            <tr><td>方法论</td><td>METHODOLOGY.md</td><td>§1.3–§1.5、五角色、生命周期、指标</td></tr>
+            <tr><td>架构</td><td>ARCHITECTURE.md</td><td>数据流、锁模型、角色边界</td></tr>
+            <tr><td>采纳</td><td>ADOPTION_GUIDE.md</td><td>Phase 0–7 检查清单</td></tr>
+            <tr><td>配置模板</td><td>templates/config.example.json</td><td>含 scorer 合格线等</td></tr>
+            <tr><td>契约</td><td>templates/issue_schema.json</td><td>Issue 与 value_score 元数据</td></tr>
+            <tr><td>评分</td><td>templates/scorer_rubric.md</td><td>五维加权量表</td></tr>
+            <tr><td>伪代码</td><td>templates/scorer_loop.pseudo.md</td><td>Scorer 主循环</td></tr>
+            <tr><td>案例</td><td>case-study/LESSONVERSE.md</td><td>实证与诚实边界</td></tr>
+            <tr><td>报告</td><td>reports/development-report.html</td><td>本页</td></tr>
+          </tbody>
+        </table>
+
+        <h3>仓库结构（摘要）</h3>
+        <pre class="tree"><span class="dir">qualoop/</span>
+├── <span class="file">README.md</span>
+├── <span class="file">DEVELOPMENT_GOALS.md</span>
+├── <span class="file">METHODOLOGY.md</span>
+├── <span class="file">ARCHITECTURE.md</span>
+├── <span class="file">ADOPTION_GUIDE.md</span>
+├── <span class="dir">case-study/</span>
+├── <span class="dir">references/</span>  glossary.md
+├── <span class="dir">reports/</span>      development-report.html
+└── <span class="dir">templates/</span>    config, schema, scorer_*, guardian_*</pre>
+      </section>
+
+      <section id="maturity">
+        <h2>成熟度模型（采纳路径）</h2>
+        <table>
+          <thead>
+            <tr><th>级别</th><th>名称</th><th>能力摘要</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L0</td><td>Manual</td><td>人工跟踪</td></tr>
+            <tr><td>L1</td><td>Observe</td><td>Tester + Scorer + Store + 报告</td></tr>
+            <tr><td>L2</td><td>Coordinate</td><td>+ Scheduler（仅分派 value_qualified）</td></tr>
+            <tr><td>L3</td><td>Bounded execute</td><td>+ fixer / verifier，明确 auto-fix 边界</td></tr>
+            <tr><td>L4</td><td>Continuous improvement</td><td>+ improver、CI 同步、指标调参（规划）</td></tr>
+          </tbody>
+        </table>
+        <p>建议大多数团队先稳定 <strong>L1–L2</strong>，再开启 Executor 自动改代码。</p>
+      </section>
+
+      <section id="metrics">
+        <h2>核心指标</h2>
+        <div class="cards">
+          <div class="card"><h4>MTTR</h4><p>open → resolved 中位时间</p></div>
+          <div class="card"><h4>Issue backlog</h4><p>非终态 Issue 加权数量</p></div>
+          <div class="card"><h4>Empty round rate</h4><p>无合格产出的轮次占比</p></div>
+          <div class="card"><h4>Low-value round rate</h4><p>有候选但分值不足的轮次占比</p></div>
+          <div class="card"><h4>Round mean value score</h4><p>当轮意见平均分趋势</p></div>
+          <div class="card"><h4>Goal-misaligned change rate</h4><p>背离 North Star 的变更占比</p></div>
+        </div>
+      </section>
+
+      <section id="docs">
+        <h2>文档地图</h2>
+        <p>在其他项目落地请优先阅读本页 <a href="#usage">使用说明</a>；下列 Markdown 供深入查阅。</p>
+        <ul style="color:var(--muted);padding-left:1.25rem">
+          <li><a href="../DEVELOPMENT_GOALS.md">DEVELOPMENT_GOALS.md</a> — 开发目标与三前提</li>
+          <li><a href="../METHODOLOGY.md">METHODOLOGY.md</a> — 完整方法论</li>
+          <li><a href="../ARCHITECTURE.md">ARCHITECTURE.md</a> — 架构与锁</li>
+          <li><a href="../ADOPTION_GUIDE.md">ADOPTION_GUIDE.md</a> — 落地清单</li>
+          <li><a href="../case-study/LESSONVERSE.md">case-study/LESSONVERSE.md</a> — 案例研究</li>
+        </ul>
+      </section>
+
+      <footer class="report-foot">
+        Qualoop（质环）· 方法论文档仓 · 与 LessonVerse 运行时无代码耦合。<br />
+        生成说明：本报告基于仓库当前文档与开发过程整理，可在本地用浏览器打开 <code>reports/development-report.html</code> 查看。
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const links = document.querySelectorAll("nav.side a");
+      const sections = [...links].map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+
+      function onScroll() {
+        let current = sections[0];
+        for (const sec of sections) {
+          if (sec.getBoundingClientRect().top <= 120) current = sec;
+        }
+        links.forEach((a) => {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + current.id);
+        });
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+</body>
+</html>

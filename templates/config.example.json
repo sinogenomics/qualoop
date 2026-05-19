@@ -1,0 +1,60 @@
+{
+  "project_root": null,
+  "backend_url": "http://localhost:5000",
+  "frontend_url": "http://localhost:8080",
+  "intervals_seconds": {
+    "tester": 120,
+    "scorer": 20,
+    "scheduler": 30,
+    "fixer": 45,
+    "improver": 90,
+    "verifier": 60,
+    "report_snapshot": 300
+  },
+  "guardian": {
+    "max_backoff_seconds": 300,
+    "initial_backoff_seconds": 5,
+    "health_stagger_seconds": 2
+  },
+  "executors": {
+    "fixer": {
+      "enabled": true,
+      "max_concurrent": 2
+    },
+    "improver": {
+      "enabled": true,
+      "max_concurrent": 1
+    },
+    "verifier": {
+      "enabled": true,
+      "max_concurrent": 2
+    }
+  },
+  "browser_test_enabled": false,
+  "browser_test_url": "http://localhost:8080/",
+  "browser_headless": true,
+  "browser_timeout_sec": 120,
+  "tester": {
+    "run_legacy_scripts": false,
+    "static_corruption_check": false,
+    "probe_localhost": true
+  },
+  "scheduler": {
+    "dry_run": true,
+    "default_lease_minutes": 30,
+    "require_value_qualified": true
+  },
+  "scorer": {
+    "enabled": true,
+    "min_value_score": 60,
+    "scale_max": 100,
+    "min_qualified_per_round": 1,
+    "rubric_path": "templates/scorer_rubric.md"
+  },
+  "brain_enabled": false,
+  "brain_project_path": null,
+  "app": {
+    "name": "YourProject",
+    "description": "Short description for reports"
+  }
+}
