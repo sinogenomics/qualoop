@@ -14,10 +14,29 @@
 
 - 你具备**运行 shell 命令**的能力（git、PowerShell / bash）
 - 你具备**读写当前业务项目文件**的能力
-- 用户已经告诉你**目标文档路径**（下文记为 `<GOALS>`，通常是相对路径如 `docs/GOALS.md`）
 - 当前工作目录 = 业务项目根（不是 Qualoop 仓库根）
 
 如果以上任一条不满足，先告诉用户缺什么，**不要瞎跑**。
+
+---
+
+## 0.5 解析用户输入（识别北极星来源）
+
+用户首条消息通常**只给两件事**：Qualoop 仓库链接 + 项目需求。需求有两种形态：
+
+- **(A) 文件路径**：`docs/GOALS.md`、`需求.md`、`requirements.txt` 等
+- **(B) 一句话目标**：「让 X 在 Y 场景下可靠运行」
+
+按以下顺序识别：
+
+1. 把 Qualoop URL 从消息里挑出去
+2. 剩余文本里找候选路径：含 `/` 或 `\` 的 token，或 `.md`/`.txt`/`.rst`/`.pdf`/`.docx`/`.json` 结尾，或「见 X」/「需求文档 X」/「目标见 X」/「per X」之后的字符串
+3. 候选路径用 `test -f` / `Test-Path` 验证存在 → 走模式 **(A)**，Step 3 用 `--north-star-file <path>` / `-NorthStarFile <path>`
+4. 候选路径不存在 → 一次性问用户，列出最相似的 `*GOAL*` / `*目标*` / `*需求*` / `*PRD*` / `*REQUIREMENT*` 候选
+5. 零候选 → 走模式 **(B)**，整段剩余自然语言作为一句话，Step 3 用 `--north-star "<text>"` / `-NorthStar "<text>"`
+6. 多个候选 → 文件名匹配 `(?i)GOAL|目标|需求|REQUIREMENT|PRD|SPEC` 优先；仍歧义问一次
+
+不要反复追问；能从消息直接推断的就直接做。下文 `<GOALS>` 指你解析出的路径或一句话。
 
 ---
 
@@ -91,16 +110,47 @@ git commit -m "Add Qualoop AI contract and submodule"
 3. 默认 `maturity = L1`：只发现、记录、打分；**不要大范围自动改业务代码**
 4. 进入第一轮检查：等价于用户说了「**Qualoop 初始化**」，按 `AGENTS.md` 第 1 节触发词表执行
 
+### Step 7：向用户输出 Qualoop 简报（必做）
+
+第一轮检查完成后，**主动**向用户输出以下内容（用用户的语言，下面给的是中文示例）：
+
+```markdown
+✅ Qualoop 已接入本项目（成熟度 L1）。
+
+**北极星（North Star）**：<这里写解析到的 North Star（文件路径或一句话）>
+
+**生成的文件**：
+- `AGENTS.md` / `CLAUDE.md` / `GEMINI.md` —— AI 契约（任何 AI 工具都自动读）
+- `qualoop.json` —— 配置（minValueScore=60, maturity=L1）
+- `tools/qualoop/` —— 方法论 submodule（只读）
+- `automation/` —— 第一轮检查产物
+
+**第一轮检查结果**：
+- 合格意见 N 条（最高分 X，最低分 Y）
+- 报告：`automation/reports/latest_issues.md`
+
+**从现在起你只需要说**：
+
+| 你说 | 我做 |
+|------|------|
+| `Qualoop 检查` | 跑下一轮：发现 → Scorer → 写报告 |
+| `Qualoop 加深检查` | 上轮空轮/低分时扩展渠道，直到出现高分合格意见 |
+| `Qualoop 升级到 L2` | 启用 Scheduler 分配，仍人工执行 |
+| `Qualoop 升级到 L3` | 启用 Executor 自动修复，受策略表与三前提约束 |
+| 任何自然语言开发请求 | 我都在 Qualoop 契约下执行 |
+
+**三前提（我永远不会违反）**：目标对齐 / 每轮必有产出 / Scorer 打分 ≥ 60
+
+需要时可读：`tools/qualoop/METHODOLOGY.md`、`tools/qualoop/DEVELOPMENT_GOALS.md`
+```
+
+把 `<...>` 占位符全部替换成实际值后输出。这是用户对 Qualoop 仪式感的**唯一一次接触点**——务必完整、不省略。
+
 ---
 
 ## 2. 与用户的最终汇报
 
-完成 Step 1–6 后，向用户回报，包含：
-
-- 新增/修改的文件清单
-- 业务项目当前 `maturity`（默认 L1）
-- 第一轮检查的产出位置：`automation/issues.json`、`automation/reports/latest_issues.md`
-- 当轮 `value_qualified` 合格意见数；若为 0，**主动加深检查**而非告诉用户「没问题」
+Step 7 即最终汇报。汇报后保持沉默等待用户下一条指令；不要继续自由发挥改代码。
 
 ---
 

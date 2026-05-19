@@ -20,24 +20,38 @@
 
 ---
 
-## 给用户：对 AI 说**一句话**即可接入（推荐）
-
-把下面这句话发给你的 AI（Codex CLI / Cursor / Claude Code / Gemini CLI / Aider / Amp 等任意一个）：
+## 给用户：新项目只需给 AI **两条信息**
 
 ```
-针对本项目的开发目标（见 docs/GOALS.md），按 https://github.com/sinogenomics/qualoop.git
-的 BOOTSTRAP.md 接入到 tools/qualoop，然后用 Qualoop 方法论完成开发。
+https://github.com/sinogenomics/qualoop          # 本仓库链接
+docs/GOALS.md                                     # 你的需求文档路径（或一句话目标也行）
 ```
 
-把 `docs/GOALS.md` 改成你项目实际的目标文档路径即可。AI 会自动：
+把这两条放在同一条消息里发给任何 AI 工具（Codex CLI / Cursor / Claude Code / Gemini CLI / Aider / Amp 等）即可，例如：
 
-1. 抓取本仓库 [`BOOTSTRAP.md`](./BOOTSTRAP.md)
-2. 加 submodule `tools/qualoop` → 跑 `install-agents` → 生成业务项目根的 `AGENTS.md` / `CLAUDE.md` / `GEMINI.md` / `qualoop.json`
-3. 进入 Qualoop 契约模式，从 L1 开始按方法论开发
+```
+https://github.com/sinogenomics/qualoop  docs/GOALS.md
+```
 
-之后日常对 AI 只说一句：「**Qualoop 检查**」。
+或者：
 
-> 没有目标文档？可以把括号里改成一句话：`(目标是：让 X 在 Y 场景下可靠运行)`。详见 [`templates/prompts/oneliner.md`](./templates/prompts/oneliner.md)。
+```
+https://github.com/sinogenomics/qualoop  让 X 在 Y 场景下可靠运行
+```
+
+AI 会自动：
+
+1. 抓取本仓库 [`AI-START-HERE.md`](./AI-START-HERE.md) → 跑一次幂等的 `install-personal-rule`（如未配置）
+2. **自动判别**第二条信息是文件路径（→ 嵌入为 North Star）还是一句话（→ 直接作为 North Star）
+3. 加 submodule `tools/qualoop` → 跑 `install-agents` → 生成业务项目根的 `AGENTS.md` / `CLAUDE.md` / `GEMINI.md` / `qualoop.json`
+4. 进入 Qualoop 契约模式（默认 L1）、跑首轮检查
+5. **主动向你输出 Qualoop 简报**：北极星、生成文件、首轮结果、可用触发词、三前提
+
+之后日常你只说一句：「**Qualoop 检查**」。
+
+> 已经在本机做过个人规则一次性安装（见下文）？那连第一条 URL 都不必给，直接说 `Qualoop 接入，开发目标见 docs/GOALS.md` 即可。
+
+详细协议：[`AI-START-HERE.md`](./AI-START-HERE.md) → [`BOOTSTRAP.md`](./BOOTSTRAP.md)。
 
 ### 话术再短一档：配置一次个人规则（**一行命令**）
 

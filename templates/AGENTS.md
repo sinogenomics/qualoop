@@ -30,9 +30,22 @@
 | **Qualoop 初始化** / **质环 初始化** | 读 `tools/qualoop/ADOPTION_GUIDE.md` Phase 0–1；仅在**当前业务项目**根下创建 `automation/`、`automation/config.json`（参照 `tools/qualoop/templates/config.example.json`）、最小 L1（IssueStore + Tester + Scorer + `reports/latest_issues.md`）。不动业务源码。 |
 | **Qualoop 检查** / **质环检查** | 跑一轮：发现 → Scorer 打分 → 必须产出 ≥ `minQualifiedPerRound` 条 `value_qualified` 意见；更新 `automation/issues.json` 与 `automation/reports/latest_issues.md`；输出当轮合格数、最高分、未合格原因。 |
 | **Qualoop 加深检查** / **质环加深** | 上轮空轮或低分：扩展 discovery 渠道（lint、单测、覆盖、E2E、文档漂移、性能基线、自动化自身健康），直至出现高分合格意见；不得交白卷。 |
+| **Qualoop 升级到 L2 / L3** | 修改 `qualoop.json` 的 `maturity`，并按 `tools/qualoop/ADOPTION_GUIDE.md` Phase 2/3 启用 Scheduler / Executor 链路；继续受三前提约束。 |
 | **Qualoop 执行** | 仅 L3 启用；仅处理 `value_qualified` 且已分配的 Issue；遵守 Executor 策略表；变更后 Verifier 复验。 |
 
 未识别触发词时，按用户自然语言执行，但**仍受第 2 节三前提约束**。
+
+### 1.1 仍未交付过 Qualoop 简报？现在交付
+
+如果本会话尚未向用户输出过 Qualoop 简报（用户首次在本机/本项目接触 Qualoop），**立即输出一次**：
+
+> ✅ 本项目已采用 Qualoop（质环）方法论，成熟度 `<qualoop.json 中的 maturity>`。
+>
+> 北极星：见本文件 §0 / `NORTH_STAR.md`（如存在）。
+>
+> 触发词：`Qualoop 检查` / `Qualoop 加深检查` / `Qualoop 升级到 L2/L3`。任何自然语言开发请求都在三前提（目标对齐 / 每轮必有产出 / Scorer ≥ 60）下执行。
+
+之后再处理用户的具体请求。
 
 ---
 
