@@ -1,33 +1,20 @@
 ---
-description: Qualoop 质环；用户说 Qualoop/质环/跑一轮检查时执行三前提与五角色
+description: Qualoop 质环；Cursor 旧版兼容入口。所有契约以业务项目根的 AGENTS.md 为准。
 alwaysApply: false
 ---
 
-# Qualoop（质环）
+# Qualoop（Cursor 旧版入口）
 
-## 配置
+> Cursor 1.x 及更新版本会**自动读取业务项目根的 `AGENTS.md`**，可不依赖本文件。
+> 旧版 Cursor 通过本规则触发；契约内容**不要在此重复**，请直接读 `@AGENTS.md`。
 
-读取本项目 **`.cursor/qualoop.json`**（若不存在则提示用户运行 `scripts/install-cursor-rule.ps1` 或复制 `templates/qualoop.cursor.json.example`）。
+@AGENTS.md
 
-- `methodologyRoot`：方法论仓库路径（只读）；优先读该目录下 `METHODOLOGY.md`、`DEVELOPMENT_GOALS.md`
-- 若 Cursor 工作区已添加方法论文件夹，用 **`@<文件夹名>/METHODOLOGY.md`** 引用，勿改方法论仓内文件
+## 触发词（与 AGENTS.md §1 一致）
 
-## 触发词 → 动作
+- **Qualoop 初始化** / **质环 初始化**
+- **Qualoop 检查** / **质环检查**
+- **Qualoop 加深检查**
+- **Qualoop 执行**（仅 L3）
 
-| 用户说 | 你做 |
-|--------|------|
-| **Qualoop 初始化** / **质环 初始化** | 读方法论 Phase 0–1；仅在**当前业务项目**创建 `automation/`、config、L1（Tester+Scorer+Store+报告） |
-| **Qualoop 检查** / **质环检查** | 执行一轮：发现→打分→≥1 条 `value_qualified`；输出 `issues.json` + `reports/latest_issues.md` |
-| **Qualoop 加深检查** / **质环加深** | 空轮/低分：扩展 channel、写 improvement，直到有高分合格意见 |
-| **Qualoop 执行** | L3：仅处理 `value_qualified` 且已分配的 Issue；verifier 复验 |
-
-## 三前提（不可妥协）
-
-1. **目标对齐**：意见朝向 North Star，不删测试/关检测换绿；`goal_alignment_note` 必填  
-2. **每轮必有产出**：至少 1 条意见；禁止只回复「没问题」  
-3. **价值评分**：`value_score` 0–100，≥ `minValueScore`（默认 60）且 `value_qualified` 才算合格；不合格继续检查  
-
-## 边界
-
-- 所有代码与 `automation/` 变更只在**当前业务项目**
-- L1 不大范围自动改业务源码；L3 遵守 Executor 策略表
+任何冲突以业务项目根的 `AGENTS.md` 为唯一权威。

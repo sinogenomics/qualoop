@@ -14,6 +14,52 @@
 2. **每轮必须提出修改意见**；提不出 = 检查深度不足，须加深检查  
 3. **Scorer 对每条意见按 North Star 贡献度打分**；低于合格线 = 不合格，须继续检查直至有足够高分合格意见
 
+---
+
+## 跨 AI 工具落地（一句话版本）
+
+**无论你用 Codex CLI / Cursor / Claude Code / Gemini CLI / Aider / Amp，都只做一步**：
+把本仓库作为只读 submodule 挂到业务项目，把 `AGENTS.md` 放到业务项目根。
+之后日常对任何 AI 说「**Qualoop 检查**」即可。
+
+```powershell
+# Windows / PowerShell
+cd path\to\your-app
+git submodule add https://github.com/sinogenomics/qualoop.git tools/qualoop
+.\tools\qualoop\scripts\install-agents.ps1 -TargetProject . -NorthStar "<your one-line goal>"
+```
+
+```bash
+# macOS / Linux / WSL
+cd path/to/your-app
+git submodule add https://github.com/sinogenomics/qualoop.git tools/qualoop
+./tools/qualoop/scripts/install-agents.sh --target . --north-star "<your one-line goal>"
+```
+
+脚本会在业务项目根生成（每项都有用途，可被 git 追踪）：
+
+| 文件 | 谁会读 |
+|------|--------|
+| `AGENTS.md` | **唯一权威契约**；Codex CLI、Cursor 1.x、Aider、Amp、Jules 等原生读取 |
+| `CLAUDE.md` | Claude Code（一行 include 指向 `AGENTS.md`） |
+| `GEMINI.md` | Gemini CLI（一行 include 指向 `AGENTS.md`） |
+| `qualoop.json` | 所有工具共用：`maturity`、`minValueScore`、`methodologyRoot` |
+| `tools/qualoop/` | 方法论 submodule（只读） |
+
+日常话术只剩两句（见 [`templates/prompts/`](./templates/prompts/)）：
+
+```
+Qualoop 初始化
+本项目 North Star：<一句话目标>     # 仅首次
+```
+```
+Qualoop 检查                       # 每轮
+```
+
+> 没有 `AGENTS.md`？AI 会把任何 Qualoop 触发词当普通指令处理，**三前提将失效**。请先跑安装脚本。
+
+---
+
 未来优化方向（本仓库为方法论与模板，非运行时实现）：
 
 - 与 CI/CD（GitHub Actions、GitLab CI 等）双向同步 issue
@@ -32,8 +78,12 @@
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 角色职责、数据流、锁与冲突模型 |
 | [ADOPTION_GUIDE.md](./ADOPTION_GUIDE.md) | 在任意仓库落地的检查清单 |
 | [case-study/LESSONVERSE.md](./case-study/LESSONVERSE.md) | LessonVerse 实证：发现了什么、修了什么 |
-| [templates/qualoop.cursor.rule.mdc](./templates/qualoop.cursor.rule.mdc) | Cursor 项目规则模板 |
-| [templates/qualoop.cursor.json.example](./templates/qualoop.cursor.json.example) | Cursor 配置示例 |
+| [templates/AGENTS.md](./templates/AGENTS.md) | **跨 AI 工具权威契约**（推荐）：Codex/Cursor/Aider/Amp 原生读取 |
+| [templates/CLAUDE.md](./templates/CLAUDE.md) · [templates/GEMINI.md](./templates/GEMINI.md) | Claude Code / Gemini CLI 入口（一行 include → `AGENTS.md`） |
+| [templates/prompts/](./templates/prompts/) | 极短话术备查：`init.md` / `check.md` / `deepen.md` |
+| [scripts/install-agents.ps1](./scripts/install-agents.ps1) · [.sh](./scripts/install-agents.sh) | 一键安装到业务项目（跨平台） |
+| [templates/qualoop.cursor.rule.mdc](./templates/qualoop.cursor.rule.mdc) | Cursor 旧版规则（兼容；新项目用 `AGENTS.md` 即可） |
+| [templates/qualoop.cursor.json.example](./templates/qualoop.cursor.json.example) | Cursor 旧版配置示例（兼容） |
 | [templates/](./templates/) | 配置、Issue JSON Schema、Guardian 伪代码 |
 | [references/glossary.md](./references/glossary.md) | 术语表 |
 | [reports/development-report.html](./reports/development-report.html) | **开发过程报告**（网页，含 Cursor 话术） |
