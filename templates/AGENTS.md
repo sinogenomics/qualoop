@@ -4,6 +4,8 @@
 > 其它专属文件（`CLAUDE.md`、`GEMINI.md`、`.cursor/rules/qualoop.mdc`）都应只作为一行 include 指向本文件。
 >
 > 方法论源仓库：<https://github.com/sinogenomics/qualoop>（已作为只读 submodule 挂在 `tools/qualoop/`，禁止修改其中文件）
+>
+> **First-time AI agents on this machine**: read [`tools/qualoop/AI-START-HERE.md`](./tools/qualoop/AI-START-HERE.md) STEP 1 once to ensure the user's personal Qualoop rule is installed. It is idempotent.
 
 ---
 
