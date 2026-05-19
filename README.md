@@ -35,15 +35,41 @@
 
 > 没有目标文档？可以把括号里改成一句话：`(目标是：让 X 在 Y 场景下可靠运行)`。详见 [`templates/prompts/oneliner.md`](./templates/prompts/oneliner.md)。
 
-### 话术再短一档：配置一次个人规则
+### 话术再短一档：配置一次个人规则（**一行命令**）
 
-不想每次写 URL？把 [`templates/personal/qualoop.personal-rule.md`](./templates/personal/qualoop.personal-rule.md) 里那段规则**粘到你 AI 工具的用户配置**一次（Cursor User Rules、`~/.claude/CLAUDE.md`、`~/.codex/AGENTS.md`、`~/.gemini/GEMINI.md` 等），之后新项目首句话术就变成：
+不想每次写 URL？把个人规则写进**你 AI 工具的用户级配置**一次。Linux / macOS / WSL 一行：
+
+```bash
+# 任选一个你常用的工具：claude | codex | gemini | cursor | all
+bash <(curl -fsSL https://raw.githubusercontent.com/sinogenomics/qualoop/main/scripts/install-personal-rule.sh) claude
+```
+
+Windows PowerShell：
+
+```powershell
+$u='https://raw.githubusercontent.com/sinogenomics/qualoop/main/scripts/install-personal-rule.ps1'
+$s=(iwr $u -UseBasicParsing).Content; iex "$s; Install-QualoopPersonalRule -Tool claude"
+```
+
+脚本会按工具自动写入对应位置（幂等，可重复运行升级）：
+
+| Tool 参数 | 写入文件 |
+|-----------|---------|
+| `claude` | `~/.claude/CLAUDE.md` |
+| `codex`  | `~/.codex/AGENTS.md` |
+| `gemini` | `~/.gemini/GEMINI.md` |
+| `cursor` | `~/.cursor/rules/qualoop.mdc`（含 `alwaysApply: true` frontmatter） |
+| `all`    | 以上全部 |
+
+之后新项目首句话术就变成：
 
 ```
 Qualoop 接入，开发目标见 docs/GOALS.md
 ```
 
 —— 不用再写 URL，不用再写 BOOTSTRAP.md，不用再写 tools/qualoop。AI 看到「Qualoop 接入」触发词会自动按个人规则去拉 BOOTSTRAP.md 完成接入。详见 [`templates/personal/`](./templates/personal/)。
+
+> 不想跑脚本？打开 [`templates/personal/qualoop.personal-rule.md`](./templates/personal/qualoop.personal-rule.md)，把 `====` 之间那段手动粘贴到对应文件即可。
 
 ---
 
