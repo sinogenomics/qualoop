@@ -16,11 +16,30 @@
 
 ---
 
-## 跨 AI 工具落地（一句话版本）
+## 给用户：对 AI 说**一句话**即可接入（推荐）
 
-**无论你用 Codex CLI / Cursor / Claude Code / Gemini CLI / Aider / Amp，都只做一步**：
-把本仓库作为只读 submodule 挂到业务项目，把 `AGENTS.md` 放到业务项目根。
-之后日常对任何 AI 说「**Qualoop 检查**」即可。
+把下面这句话发给你的 AI（Codex CLI / Cursor / Claude Code / Gemini CLI / Aider / Amp 等任意一个）：
+
+```
+针对本项目的开发目标（见 docs/GOALS.md），按 https://github.com/sinogenomics/qualoop.git
+的 BOOTSTRAP.md 接入到 tools/qualoop，然后用 Qualoop 方法论完成开发。
+```
+
+把 `docs/GOALS.md` 改成你项目实际的目标文档路径即可。AI 会自动：
+
+1. 抓取本仓库 [`BOOTSTRAP.md`](./BOOTSTRAP.md)
+2. 加 submodule `tools/qualoop` → 跑 `install-agents` → 生成业务项目根的 `AGENTS.md` / `CLAUDE.md` / `GEMINI.md` / `qualoop.json`
+3. 进入 Qualoop 契约模式，从 L1 开始按方法论开发
+
+之后日常对 AI 只说一句：「**Qualoop 检查**」。
+
+> 没有目标文档？可以把括号里改成一句话：`(目标是：让 X 在 Y 场景下可靠运行)`。详见 [`templates/prompts/oneliner.md`](./templates/prompts/oneliner.md)。
+
+---
+
+## 跨 AI 工具落地（手动版本，供脚本/CI 使用）
+
+如果你想自己跑命令而不是让 AI 跑：
 
 ```powershell
 # Windows / PowerShell — pick ONE form of North Star
@@ -92,6 +111,7 @@ Qualoop 检查                       # 每轮
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 角色职责、数据流、锁与冲突模型 |
 | [ADOPTION_GUIDE.md](./ADOPTION_GUIDE.md) | 在任意仓库落地的检查清单 |
 | [case-study/LESSONVERSE.md](./case-study/LESSONVERSE.md) | LessonVerse 实证：发现了什么、修了什么 |
+| [BOOTSTRAP.md](./BOOTSTRAP.md) | **写给 AI 的接入协议**：用户一句话 → AI 自动完成 submodule + 安装 + 进入契约 |
 | [templates/AGENTS.md](./templates/AGENTS.md) | **跨 AI 工具权威契约**（推荐）：Codex/Cursor/Aider/Amp 原生读取 |
 | [templates/CLAUDE.md](./templates/CLAUDE.md) · [templates/GEMINI.md](./templates/GEMINI.md) | Claude Code / Gemini CLI 入口（一行 include → `AGENTS.md`） |
 | [templates/prompts/](./templates/prompts/) | 极短话术备查：`init.md` / `check.md` / `deepen.md` |
