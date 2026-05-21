@@ -27,6 +27,7 @@
 
 | 用户说 | 你必须做 |
 |--------|----------|
+| **Qualoop 规划** / **质环规划** | 分析全局目标及 `GOALS.md` / `DEVELOPMENT_GOALS.md`，执行 **Architect / Planner** 规划；输出架构/设计蓝图（如 `docs/ARCHITECTURE_SCHEME.md`）并生成里程碑式的候选 Issue（`type: architecture`）写入台账。 |
 | **Qualoop 初始化** / **质环 初始化** | 读 `tools/qualoop/ADOPTION_GUIDE.md` Phase 0–1；仅在**当前业务项目**根下创建 `automation/`、`automation/config.json`（参照 `tools/qualoop/templates/config.example.json`）、最小 L1（IssueStore + Tester + Scorer + `reports/latest_issues.md`）。不动业务源码。 |
 | **Qualoop 检查** / **质环检查** | 跑一轮：发现 → Scorer 打分 → 必须产出 ≥ `minQualifiedPerRound` 条 `value_qualified` 意见；更新 `automation/issues.json` 与 `automation/reports/latest_issues.md`；输出当轮合格数、最高分、未合格原因。 |
 | **Qualoop 加深检查** / **质环加深** | 上轮空轮或低分：扩展 discovery 渠道（lint、单测、覆盖、E2E、文档漂移、性能基线、自动化自身健康），直至出现高分合格意见；不得交白卷。 |

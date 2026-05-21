@@ -1,6 +1,6 @@
 # Qualoop 架构
 
-本文描述五角色（含 **Scorer**）之间的 **职责边界、数据流与锁模型**。实现语言无关；LessonVerse 使用 Python 标准库 + JSON 文件 Store。
+本文描述六角色（含 **Architect** 和 **Scorer**）之间的 **职责边界、数据流与锁模型**。实现语言无关；LessonVerse 使用 Python 标准库 + JSON 文件 Store。
 
 ---
 
@@ -9,7 +9,8 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Guardian                                 │
-│  • spawn / restart: tester, scorer, scheduler, fixer, improver, verifier │
+│  • spawn / restart: planner, tester, scorer, scheduler, fixer,   │
+│    improver, verifier                                            │
 │  • exponential backoff on crash                                  │
 │  • periodic report snapshot                                      │
 └────────────────────────────┬────────────────────────────────────┘
@@ -17,30 +18,43 @@
      ┌───────────────────────┼───────────────────────┐
      ▼                       ▼                       ▼
 ┌─────────┐           ┌────────────┐          ┌───────────────┐
-│ Tester  │  append   │ Issue Store│  assign  │  Scheduler    │
-│ loops   │──────────►│ (JSON/DB)  │◄─────────│  single writer│
-└────┬────┘           └──────▲─────┘          └───────────────┘
-     │                        │ score only
-     ▼                        │
-┌─────────┐                   │
-│ Scorer  │───────────────────┘
-│ loops   │
-└─────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-         ┌────────┐    ┌──────────┐   ┌───────────┐
-         │ Fixer  │    │ Improver │   │ Verifier  │
-         └────────┘    └──────────┘   └───────────┘
-              │              │              │
-              └──────────────┴──────────────┘
-                             │
-                    path locks + store lock
+│Planner  │           │            │          │               │
+│(Arch)   ├──────────►│            │◄─────────┤  Scheduler    │
+└─────────┘  append   │Issue Store │  assign  │  single writer│
+┌─────────┐           │ (JSON/DB)  │          │               │
+│Tester   ├──────────►│            │          └──────┬────────┘
+└────┬────┘           └──────▲─────┘                 │
+     │                       │ score only            │
+     ▼                       │                       ▼
+┌─────────┐                  │                ┌──────────────┐
+│Scorer   │──────────────────┘                │  Executors   │
+└─────────┘                                   └──────────────┘
+                                                     │
+                                                     ▼
+                                              ┌──────────────┐
+                                              │ fixer|       │
+                                              │ improver|    │
+                                              │ verifier     │
+                                              └──────────────┘
+                                                     │
+                                            path locks + store lock
 ```
 
 ---
 
 ## 2. 角色详解
+
+### 2.0 Architect / Planner
+
+| 属性 | 说明 |
+|------|------|
+| 输入 | `GOALS.md` / `DEVELOPMENT_GOALS.md` / 北极星目标 |
+| 输出 | 架构方案/规划蓝图文档（如 `docs/ARCHITECTURE_SCHEME.md`）、里程碑候选 Issue（`type: architecture`） |
+| 作用阶段 | 项目初始化、重大目标重构、首轮开发前置期 |
+| 副作用 | 写入 Issue Store，供 Scorer 进行打分门槛校验，防盲目微调 |
+| 运行模式 | `plan` 子命令或首轮前置流程自动加载 |
+
+**LessonVerse 映射**：`planner.py` — `QualoopPlanner`、目标解析器、里程碑拆解生成器。
 
 ### 2.1 Tester
 
@@ -169,6 +183,7 @@ Schema：`templates/issue_schema.json`。
 | test_failure | fixer |
 | static | fixer |
 | improvement | improver |
+| architecture | improver（或专用 executor） |
 | verification | verifier |
 | browser_e2e | fixer（或专用 executor） |
 

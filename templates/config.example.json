@@ -55,6 +55,10 @@
     "health_notebooklm_mode": "light",
     "create_notebook_probe_enabled": false
   },
+  "planner": {
+    "enabled": true,
+    "scheme_output_path": "docs/ARCHITECTURE_SCHEME.md"
+  },
   "scheduler": {
     "dry_run": true,
     "default_lease_minutes": 30,

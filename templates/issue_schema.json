@@ -48,7 +48,8 @@
             "static",
             "browser_e2e",
             "improvement",
-            "verification"
+            "verification",
+            "architecture"
           ],
           "description": "Discovery channel / routing key"
         },

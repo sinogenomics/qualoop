@@ -6,6 +6,7 @@
 
 - 只评 **对 North Star 的贡献度**，不评实现难度或个人偏好  
 - 与 [DEVELOPMENT_GOALS.md](../DEVELOPMENT_GOALS.md) 前提一、前提三一致；背离目标的意见 **≤20 分** 且 `value_qualified: false`  
+- 针对 `type: architecture` 的架构/里程碑规划，应重点考量其对 `GOALS.md` 的覆盖完备度与执行路径的合理性，合理的里程碑规划分值应落在 **80–90** 高价值锚点区间。
 - 须有 `value_score_rationale`（1–3 句，指向具体 North Star 条目与可验证信号）  
 
 ## 维度与权重（满分 100）

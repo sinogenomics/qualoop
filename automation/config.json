@@ -1,0 +1,29 @@
+{
+  "project_root": ".",
+  "intervals_seconds": {
+    "tester": 120,
+    "scorer": 20,
+    "report_snapshot": 300
+  },
+  "tester": {
+    "markdown_link_check": true,
+    "json_schema_check": true,
+    "script_syntax_check": true,
+    "drift_check": true
+  },
+  "planner": {
+    "enabled": true,
+    "scheme_output_path": "docs/ARCHITECTURE_SCHEME.md"
+  },
+  "scorer": {
+    "enabled": true,
+    "min_value_score": 60,
+    "scale_max": 100,
+    "min_qualified_per_round": 1,
+    "rubric_path": "templates/scorer_rubric.md"
+  },
+  "app": {
+    "name": "Qualoop",
+    "description": "Continuous, bounded self-improvement through quality loops methodology."
+  }
+}
