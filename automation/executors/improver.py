@@ -82,6 +82,35 @@ def handle_improve(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
     project_root: Path = cfg["_project_root"]
     iid = issue["id"]
 
+    # Antigravity LLM Integration for Improver
+    try:
+        from ..llm_client import get_llm_config, call_antigravity_llm
+        llm_cfg = get_llm_config(project_root)
+        if llm_cfg.get("provider") == "antigravity":
+            prompt = (
+                f"[Qualoop Improver Agent - System Optimization Session]\n"
+                f"We are executing an improvement ticket: '{issue.get('description')}'.\n"
+                f"Paths involved: {issue.get('paths')}\n\n"
+                f"Please open a session in the user's active IDE session to recommend and apply 3 high-impact K-12 learning material optimizations or system optimizations (e.g. accelerating first download times, improving infographic rendering, adding responsive CSS transitions). Respond in Chinese with clear code proposals."
+            )
+            model = llm_cfg.get("model", "flash")
+            ai_ret = call_antigravity_llm(project_root, prompt, model=model)
+            logger.info("Improver initiated Antigravity IDE optimization session: %s", ai_ret)
+            
+            _append_suggestion(
+                project_root,
+                issue,
+                f"Antigravity Optimizer recommended optimizations: {ai_ret}",
+                cfg=cfg,
+                logger=logger
+            )
+            
+            complete_issue(store, iid, resolved=True, note=f"Antigravity Optimization Session: {ai_ret}")
+            write_latest_snapshot(store)
+            return
+    except Exception as e:
+        logger.warning("Failed to invoke Antigravity LLM for Improver: %s", e)
+
     result = _run_improvement_script(project_root, logger)
     _append_suggestion(project_root, issue, result, cfg=cfg, logger=logger)
     logger.info("Improver: %s", result[:120])

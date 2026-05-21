@@ -156,6 +156,26 @@ def handle_verify(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
                 )
                 logger.info("Verifier also resolved parent %s", parent[:8])
     else:
+        # Antigravity LLM Integration for Verifier Failure
+        try:
+            from ..llm_client import get_llm_config, call_antigravity_llm
+            llm_cfg = get_llm_config(project_root)
+            if llm_cfg.get("provider") == "antigravity":
+                prompt = (
+                    f"[Qualoop Verifier Agent - Verification Failure]\n"
+                    f"A target check failed to verify system resolution.\n"
+                    f"Issue Type: {itype}\n"
+                    f"Paths: {issue.get('paths')}\n"
+                    f"Detail: {detail}\n\n"
+                    f"Please open a diagnostic session in the user's active IDE session to investigate why this issue failed verification, and help the user resolve it. Respond in Chinese."
+                )
+                model = llm_cfg.get("model", "flash")
+                ai_ret = call_antigravity_llm(project_root, prompt, model=model)
+                logger.info("Verifier initiated Antigravity IDE diagnostic session: %s", ai_ret)
+                detail = detail + f"\n\n### 🛡️ Antigravity AI 验证失败诊断：\n{ai_ret}"
+        except Exception as e:
+            logger.warning("Failed to invoke Antigravity LLM for Verifier: %s", e)
+
         complete_issue(store, iid, resolved=False, note=detail)
         logger.info("Verifier kept %s open (%s): %s", iid[:8], itype, detail[:160])
     write_latest_snapshot(store)

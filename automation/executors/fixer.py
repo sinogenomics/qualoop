@@ -236,6 +236,31 @@ def handle_fix(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
 
     _ensure_automation_readme(project_root)
 
+    # Antigravity LLM Integration for Fixer
+    try:
+        from ..llm_client import get_llm_config, call_antigravity_llm
+        llm_cfg = get_llm_config(project_root)
+        if llm_cfg.get("provider") == "antigravity":
+            prompt = (
+                f"[Qualoop Fixer Agent - Code Generation Session]\n"
+                f"We are fixing a system issue of type '{issue_type}' with severity '{issue.get('severity')}'.\n"
+                f"Paths involved: {issue.get('paths')}\n"
+                f"Description:\n{issue.get('description')}\n\n"
+                f"Please open a diagnostic session in the user's active IDE session to fix these files, ensure they run correctly, and follow the project's North Star. Suggest the precise code fixes in Chinese to help the user resolve the issue immediately."
+            )
+            model = llm_cfg.get("model", "flash")
+            ai_ret = call_antigravity_llm(project_root, prompt, model=model)
+            logger.info("Fixer initiated Antigravity IDE code-gen session: %s", ai_ret)
+            
+            curr_desc = issue.get("description", "")
+            if "🛡️ Antigravity AI" not in curr_desc:
+                store.update(
+                    iid,
+                    description=curr_desc + f"\n\n### 🛡️ Antigravity AI 修复会话：\n{ai_ret}"
+                )
+    except Exception as e:
+        logger.warning("Failed to invoke Antigravity LLM for Fixer: %s", e)
+
     fixer_cfg = (cfg.get("executors") or {}).get("fixer") or {}
     forbidden_paths = list(fixer_cfg.get("forbidden_paths") or [])
     for rel in issue.get("paths") or []:

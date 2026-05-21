@@ -117,7 +117,7 @@ def _http_probe(url: str, timeout: float = 5.0) -> tuple[bool, str, float]:
             body = resp.read(4096).decode("utf-8", errors="replace")
             elapsed_ms = (time.monotonic() - started) * 1000
             ok = resp.status == 200
-            return ok, f"HTTP {resp.status} {body[:200]}", elapsed_ms
+            return ok, f"HTTP {resp.status} {body}", elapsed_ms
     except urllib.error.HTTPError as e:
         elapsed_ms = (time.monotonic() - started) * 1000
         return False, f"HTTP {e.code}: {e.reason}", elapsed_ms
@@ -150,6 +150,31 @@ def _post_json(url: str, payload: dict, timeout: float = 30.0) -> tuple[int, str
 
 
 def _maybe_add_issue(store: IssueStore, **kwargs) -> int:
+    project_root = Path(__file__).resolve().parent.parent
+    try:
+        from .llm_client import get_llm_config, call_antigravity_llm
+        llm_cfg = get_llm_config(project_root)
+        if llm_cfg.get("provider") == "antigravity":
+            desc = kwargs.get("description", "")
+            itype = kwargs.get("issue_type", "unknown")
+            severity = kwargs.get("severity", "medium")
+            paths = kwargs.get("paths", [])
+            
+            prompt = (
+                f"[Qualoop Tester Agent Diagnostic]\n"
+                f"A local probe has detected a defect in the system.\n"
+                f"Issue Type: {itype}\n"
+                f"Severity: {severity}\n"
+                f"Paths involved: {paths}\n"
+                f"Description:\n{desc}\n\n"
+                f"Please diagnose the potential root cause, evaluate how it affects our North Star, and recommend a clear, actionable fix strategy. Keep your response highly concise and professional in Chinese."
+            )
+            model = llm_cfg.get("model", "flash")
+            ai_ret = call_antigravity_llm(project_root, prompt, model=model)
+            kwargs["description"] = desc + f"\n\n### 🛡️ Antigravity AI 智能诊断：\n{ai_ret}"
+    except Exception as e:
+        pass
+
     issue = store.add(**kwargs)
     return 1 if issue else 0
 
