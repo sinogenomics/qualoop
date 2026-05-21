@@ -1,122 +1,134 @@
-import os
-import json
-import uuid
+"""JSON issue store with dedupe and single-writer locking."""
+from __future__ import annotations
+
 import hashlib
-from datetime import datetime
-from automation.paths import get_abs_path
+import json
+import re
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from .locks import store_lock
+from .paths import ensure_layout
+
+STATUSES_OPEN = frozenset({"open", "assigned", "in_progress"})
+STATUSES_TERMINAL = frozenset({"resolved", "wontfix", "duplicate"})
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _fingerprint(issue_type: str, description: str, paths: list[str] | None = None) -> str:
+    norm_desc = re.sub(r'0x[0-9a-fA-F]+|[0-9a-fA-F]{8}\b', '', description.strip())
+    blob = f"{issue_type}\n{norm_desc}"
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
 
 class IssueStore:
-    def __init__(self, filename="automation/issues.json"):
-        self.filepath = get_abs_path(filename)
-        self.data = {"issues": [], "meta": {"version": 1}}
-        self.load()
+    def __init__(self, issues_path: Path | None = None):
+        layout = ensure_layout()
+        self.path = issues_path or layout["issues"]
+        if not self.path.exists():
+            self._write_unlocked({"issues": [], "meta": {"version": 1}})
 
-    def load(self):
-        """Load issues from the store file, or initialize it if it doesn't exist."""
-        if os.path.exists(self.filepath):
-            try:
-                with open(self.filepath, "r", encoding="utf-8") as f:
-                    self.data = json.load(f)
-                    if "issues" not in self.data:
-                        self.data["issues"] = []
-                    if "meta" not in self.data:
-                        self.data["meta"] = {"version": 1}
-            except Exception as e:
-                print(f"Warning: failed to load issue store: {e}. Reinitializing.")
-                self.data = {"issues": [], "meta": {"version": 1}}
-        else:
-            # Ensure the directory exists
-            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-            self.save()
+    def _read_unlocked(self) -> dict[str, Any]:
+        with self.path.open(encoding="utf-8") as f:
+            return json.load(f)
 
-    def save(self):
-        """Save the issues back to the store file."""
-        with open(self.filepath, "w", encoding="utf-8") as f:
-            json.dump(self.data, f, indent=2, ensure_ascii=False)
+    def _write_unlocked(self, data: dict[str, Any]) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.path.with_suffix(".tmp")
+        with tmp.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        tmp.replace(self.path)
 
-    @staticmethod
-    def calculate_fingerprint(issue_type, description, paths):
-        """Generate a stable 16-character hexadecimal fingerprint."""
-        sorted_paths = ",".join(sorted(paths))
-        raw_str = f"{issue_type}:{description}:{sorted_paths}"
-        sha = hashlib.sha256(raw_str.encode("utf-8")).hexdigest()
-        return sha[:16]
+    def list_issues(self, status_filter: set[str] | None = None) -> list[dict[str, Any]]:
+        with store_lock():
+            data = self._read_unlocked()
+            issues = data.get("issues", [])
+            if status_filter:
+                return [i for i in issues if i.get("status") in status_filter]
+            return list(issues)
 
-    def add_candidate(self, severity, issue_type, description, paths, metadata=None):
-        """
-        Add a newly discovered candidate issue.
-        Deduplicates against existing issues using the fingerprint.
-        Returns the issue object.
-        """
-        fingerprint = self.calculate_fingerprint(issue_type, description, paths)
-        now = datetime.utcnow().isoformat() + "Z"
-        
-        # Check for existing issue with the same fingerprint
-        existing = None
-        for issue in self.data["issues"]:
-            if issue.get("fingerprint") == fingerprint:
-                existing = issue
-                break
+    def get(self, issue_id: str) -> dict[str, Any] | None:
+        for issue in self.list_issues():
+            if issue.get("id") == issue_id:
+                return issue
+        return None
 
-        if existing:
-            # If the issue was resolved/closed but is found again, reopen it
-            if existing["status"] in ["resolved", "wontfix", "duplicate"]:
-                existing["status"] = "open"
-                existing["updated_at"] = now
-                # Clear previous terminal reasons if reopening
-                if "metadata" in existing:
-                    existing["metadata"].pop("terminal_reason", None)
-                    existing["metadata"].pop("value_insufficient", None)
-                    existing["metadata"].pop("executor_note", None)
-            else:
-                # Just update it
-                existing["updated_at"] = now
-            
-            # Merge metadata if provided
-            if metadata:
-                if "metadata" not in existing:
-                    existing["metadata"] = {}
-                existing["metadata"].update(metadata)
-            
-            return existing
-        else:
-            # Create a brand new issue
-            new_issue = {
+    def add(
+        self,
+        *,
+        severity: str,
+        issue_type: str,
+        description: str,
+        paths: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Add issue if not duplicate. Returns issue or None if deduped."""
+        fp = _fingerprint(issue_type, description, paths)
+        now = _utc_now()
+        with store_lock():
+            data = self._read_unlocked()
+            for existing in data.get("issues", []):
+                if existing.get("fingerprint") == fp and existing.get("status") not in STATUSES_TERMINAL:
+                    if paths:
+                        existing_paths = existing.setdefault("paths", [])
+                        for p in paths:
+                            if p not in existing_paths:
+                                existing_paths.append(p)
+                        existing["paths"] = sorted(existing_paths)
+                        existing["updated_at"] = now
+                        self._write_unlocked(data)
+                    return None
+            issue = {
                 "id": str(uuid.uuid4()),
                 "severity": severity,
                 "type": issue_type,
                 "description": description,
                 "status": "open",
                 "assigned_executor": None,
-                "paths": paths,
-                "fingerprint": fingerprint,
+                "paths": paths or [],
+                "fingerprint": fp,
                 "metadata": metadata or {},
                 "created_at": now,
-                "updated_at": now
+                "updated_at": now,
             }
-            self.data["issues"].append(new_issue)
-            return new_issue
+            data.setdefault("issues", []).append(issue)
+            self._write_unlocked(data)
+            return issue
 
-    def resolve_missing(self, active_fingerprints):
-        """
-        Mark open/assigned issues as resolved if they are no longer reported by the tester.
-        This provides automatic verification and lifecycle transitions.
-        """
-        now = datetime.utcnow().isoformat() + "Z"
-        resolved_count = 0
-        for issue in self.data["issues"]:
-            if issue["status"] in ["open", "assigned", "in_progress"]:
-                # Architecture planning milestones are not discovered by periodic scanning, so prevent them from auto-resolving
-                if issue.get("type") == "architecture":
+    def update(self, issue_id: str, **fitlds: Any) -> dict[str, Any] | None:
+        with store_lock():
+            data = self._read_unlocked()
+            for issue in data.get("issues", []):
+                if issue.get("id") != issue_id:
                     continue
-                if issue["fingerprint"] not in active_fingerprints:
-                    issue["status"] = "resolved"
-                    issue["updated_at"] = now
-                    if "metadata" not in issue:
-                        issue["metadata"] = {}
-                    issue["metadata"]["executor_note"] = "Automatically resolved because the issue is no longer detected by the tester."
-                    resolved_count += 1
-        return resolved_count
+                for key, value in fitlds.items():
+                    if key in ("id", "fingerprint", "created_at"):
+                        continue
+                    issue[key] = value
+                issue["updated_at"] = _utc_now()
+                self._write_unlocked(data)
+                return dict(issue)
+        return None
 
-    def get_issues(self):
-        return self.data["issues"]
+    def assign(self, issue_id: str, executor: str, lease_until: str | None = None) -> bool:
+        with store_lock():
+            data = self._read_unlocked()
+            for issue in data.get("issues", []):
+                if issue.get("id") != issue_id:
+                    continue
+                if issue.get("status") in STATUSES_TERMINAL:
+                    return False
+                if issue.get("assigned_executor") and issue.get("status") == "in_progress":
+                    return False
+                issue["assigned_executor"] = executor
+                issue["status"] = "assigned"
+                issue["lease_until"] = lease_until
+                issue["updated_at"] = _utc_now()
+                self._write_unlocked(data)
+                return True
+        return False
