@@ -166,3 +166,67 @@ Issues that require a person (`open` + `requires_human`, or `wontfix` + `termina
             f.write(report_content)
 
         return report_path
+
+
+def write_automation_outcomes(*, window_hours: float = 10.0):
+    """Rebuild automation_outcomes.json for dev-log (best-effort)."""
+    try:
+        from .build_dev_log_report import build_report, write_reports
+
+        report = build_report(window_hours=window_hours)
+        return write_reports(report, update_markdown=True)
+    except Exception:
+        return None
+
+
+def write_latest_snapshot(store=None):
+    from pathlib import Path
+    from datetime import timezone
+    from .issue_store import IssueStore, STATUSES_OPEN
+    from .paths import ensure_layout
+
+    store = store or IssueStore()
+    layout = ensure_layout()
+    out = layout["reports"] / "latest_issues.md"
+    issues = store.list_issues(status_filter=STATUSES_OPEN | {"assigned", "in_progress"})
+    issues.sort(key=lambda i: (i.get("severity", ""), i.get("created_at", "")), reverse=True)
+
+    lints = [
+        "# ParadigmLearn Automation — Latest Issues",
+        "",
+        f"_Generated: {datetime.now(timezone.utc).isoformat()}_",
+        "",
+        f"**Open / active count:** {len(issues)}",
+        "",
+    ]
+    if not issues:
+        lints.append("_No open issues._")
+    else:
+        lints.append("| Severity | Type | Status | Executor | Description |")
+        lints.append("|----------|------|--------|----------|-------------|")
+        for i in issues:
+            desc = (i.get("description") or "").replace("|", "\\|").replace("\n", " ")[:120]
+            lints.append(
+                f"| {i.get('severity','?')} | {i.get('type','?')} | {i.get('status','?')} "
+                f"| {i.get('assigned_executor') or '-'} | {desc} |"
+            )
+        lints.append("")
+        lints.append("## Details")
+        lints.append("")
+        for i in issues:
+            lints.extend([
+                f"### `{i.get('id', '')[:8]}…` — {i.get('type')}",
+                "",
+                f"- **Severity:** {i.get('severity')}",
+                f"- **Status:** {i.get('status')}",
+                f"- **Executor:** {i.get('assigned_executor') or '(unassigned)'}",
+                f"- **Paths:** {', '.join(i.get('paths') or []) or '(none)'}",
+                "",
+                i.get("description", ""),
+                "",
+            ])
+
+    out.write_text("\n".join(lints), encoding="utf-8")
+    write_automation_outcomes()
+    return out
+

@@ -691,13 +691,14 @@ def run_legacy_scripts(
 
 
 def run_once(
-    cfg: dict | None = None, *, browser: bool = False, force_notebooklm: bool = False
+    cfg: dict | None = None, *, browser: bool = False, force_notebooklm: bool = False, store: IssueStore | None = None
 ) -> dict:
     cfg = cfg or load_config()
     layout = ensure_layout(cfg)
     logger = setup_logger("tester", cfg)
     project_root: Path = cfg["_project_root"]
-    store = IssueStore()
+    if store is None:
+        store = IssueStore()
 
     depth = _resolve_depth(cfg)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -865,6 +866,55 @@ def main(argv: list[str] | None = None) -> int:
             force_notebooklm=args.force_notebooklm,
         )
     return 0
+
+
+class QualoopTester:
+    def __init__(self, deep: bool = False):
+        self.deep = deep
+
+    def run_all_checks(self) -> list[dict]:
+        """
+        Compatible interface for CLI automation/qualoop.py execution flow.
+        Captures newly discovered issues in a memory-resident CaptureStore without writing them to disk.
+        """
+        from .issue_store import IssueStore
+
+        class CaptureStore(IssueStore):
+            def __init__(self):
+                super().__init__()
+                self.captured_candidates = []
+                self.issues = {}
+
+            def add(self, severity, issue_type, description, paths=None, metadata=None):
+                cand = {
+                    "severity": severity,
+                    "type": issue_type,
+                    "description": description,
+                    "paths": paths or [],
+                    "metadata": metadata or {}
+                }
+                self.captured_candidates.append(cand)
+                return {
+                    "id": f"tmp-{len(self.captured_candidates)}",
+                    "severity": severity,
+                    "type": issue_type,
+                    "description": description,
+                    "paths": paths or [],
+                    "metadata": metadata or {}
+                }
+
+            def save(self):
+                pass  # Prevent writing mock candidates to issues.json prematurely
+
+        cfg = load_config()
+        if self.deep:
+            cfg["tester_depth"] = "deep"
+        else:
+            cfg["tester_depth"] = "standard"
+
+        capture_store = CaptureStore()
+        run_once(cfg, store=capture_store)
+        return capture_store.captured_candidates
 
 
 if __name__ == "__main__":

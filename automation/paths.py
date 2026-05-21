@@ -1,51 +1,118 @@
-import os
+"""Resolve project paths and automation directories."""
+from __future__ import annotations
+
 import json
+from pathlib import Path
 
-# The project root is the parent directory of this automation package.
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+import os
 
-def get_abs_path(rel_path):
+_PKG = Path(__file__).resolve().parent
+_DEFAULT_ROOT = _PKG.parent
+PROJECT_ROOT = str(_DEFAULT_ROOT)
+
+_CANDIDATE_ROOTS = [
+    _DEFAULT_ROOT,
+]
+
+
+def get_abs_path(rel_path: str) -> str:
     """Convert a repository-relative path to an absolute path."""
     if os.path.isabs(rel_path):
         return rel_path
-    # Strip leading slash or dot-slash if present
     if rel_path.startswith("./"):
         rel_path = rel_path[2:]
     elif rel_path.startswith("/"):
         rel_path = rel_path[1:]
     return os.path.abspath(os.path.join(PROJECT_ROOT, rel_path))
 
-def get_rel_path(abs_path):
+
+def get_rel_path(abs_path: str) -> str:
     """Convert an absolute path to a repository-relative path."""
     return os.path.relpath(abs_path, PROJECT_ROOT)
 
-def load_config():
-    """Load configuration from automation/config.json."""
-    config_path = os.path.join(PROJECT_ROOT, "automation", "config.json")
-    if not os.path.exists(config_path):
+
+def load_config() -> dict:
+    cfg_path = _PKG / "config.json"
+    if not cfg_path.exists():
+        # Fallback dictionary if config doesn't exist yet
         return {
+            "_project_root": _DEFAULT_ROOT,
             "project_root": ".",
             "tester": {
-                "markdown_link_check": True,
-                "json_schema_check": True,
-                "script_syntax_check": True,
-                "drift_check": True
-            },
-            "planner": {
-                "enabled": True,
-                "scheme_output_path": "docs/ARCHITECTURE_SCHEME.md"
-            },
-            "scorer": {
-                "enabled": True,
-                "min_value_score": 60,
-                "scale_max": 100,
-                "min_qualified_per_round": 1,
-                "rubric_path": "templates/scorer_rubric.md"
-            },
-            "app": {
-                "name": "Qualoop",
-                "description": "Continuous, bounded self-improvement through quality loops methodology."
+                "probe_localhost": True,
+                "static_python_corruption_check": True,
             }
         }
-    with open(config_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with cfg_path.open(encoding="utf-8-sig") as f:
+        cfg = json.load(f)
+    root_override = cfg.get("project_root")
+    if root_override:
+        cfg["_project_root"] = Path(root_override)
+    else:
+        cfg["_project_root"] = resolve_project_root()
+    return cfg
+
+
+def resolve_project_root() -> Path:
+    if (_DEFAULT_ROOT / "app.py").is_file():
+        return _DEFAULT_ROOT
+    for candidate in _CANDIDATE_ROOTS:
+        if candidate != _DEFAULT_ROOT and (candidate / "app.py").is_file():
+            return candidate
+    return _DEFAULT_ROOT
+
+
+def load_qualoop_json(project_root: Path | None = None) -> dict:
+    root = project_root or resolve_project_root()
+    path = root / "qualoop.json"
+    if not path.is_file():
+        return {}
+    try:
+        with path.open(encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def maturity_level(cfg: dict | None = None) -> str:
+    """L1 | L2 | L3 | L4 from project qualoop.json (default L1)."""
+    if cfg and cfg.get("qualoop", {}).get("maturity"):
+        return str(cfg["qualoop"]["maturity"]).upper()
+    qp = load_qualoop_json(
+        cfg["_project_root"] if cfg and cfg.get("_project_root") else None
+    )
+    return str(qp.get("maturity", "L1")).upper()
+
+
+_MATURITY_ORDER = {"L1": 1, "L2": 2, "L3": 3, "L4": 4}
+
+
+def maturity_at_least(level: str, cfg: dict | None = None) -> bool:
+    cur = _MATURITY_ORDER.get(maturity_level(cfg), 1)
+    need = _MATURITY_ORDER.get(level.upper(), 99)
+    return cur >= need
+
+
+def automation_dir(cfg: dict | None = None) -> Path:
+    root = (cfg or load_config())["_project_root"]
+    d = root / "automation"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def ensure_layout(cfg: dict | None = None) -> dict[str, Path]:
+    auto = automation_dir(cfg)
+    paths = {
+        "root": auto.parent,
+        "automation": auto,
+        "issues": auto / "issues.json",
+        "store_lock": auto / ".store.lock",
+        "locks": auto / "locks",
+        "logs": auto / "logs",
+        "reports": auto / "reports",
+        "screenshots": auto / "reports" / "screenshots",
+        "fixtures": auto / "fixtures",
+    }
+    for key in ("locks", "logs", "reports", "screenshots", "fixtures"):
+        paths[key].mkdir(parents=True, exist_ok=True)
+    return paths

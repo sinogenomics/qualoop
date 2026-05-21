@@ -132,3 +132,75 @@ class IssueStore:
                 self._write_unlocked(data)
                 return True
         return False
+
+    @staticmethod
+    def calculate_fingerprint(issue_type: str, description: str, paths: list[str] | None = None) -> str:
+        return _fingerprint(issue_type, description, paths)
+
+    def add_candidate(
+        self,
+        severity: str,
+        issue_type: str,
+        description: str,
+        paths: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        fp = _fingerprint(issue_type, description, paths)
+        now = _utc_now()
+        with store_lock():
+            data = self._read_unlocked()
+            for existing in data.get("issues", []):
+                if existing.get("fingerprint") == fp and existing.get("status") not in STATUSES_TERMINAL:
+                    if paths:
+                        existing_paths = existing.setdefault("paths", [])
+                        for p in paths:
+                            if p not in existing_paths:
+                                existing_paths.append(p)
+                        existing["paths"] = sorted(existing_paths)
+                    if metadata:
+                        existing.setdefault("metadata", {}).update(metadata)
+                    existing["updated_at"] = now
+                    self._write_unlocked(data)
+                    return existing
+            issue = {
+                "id": str(uuid.uuid4()),
+                "severity": severity,
+                "type": issue_type,
+                "description": description,
+                "status": "open",
+                "assigned_executor": None,
+                "paths": paths or [],
+                "fingerprint": fp,
+                "metadata": metadata or {},
+                "created_at": now,
+                "updated_at": now,
+            }
+            data.setdefault("issues", []).append(issue)
+            self._write_unlocked(data)
+            return issue
+
+    def resolve_missing(self, active_fingerprints: set[str]) -> int:
+        now = _utc_now()
+        resolved_count = 0
+        with store_lock():
+            data = self._read_unlocked()
+            for issue in data.get("issues", []):
+                if (
+                    issue.get("status") in STATUSES_OPEN
+                    and issue.get("type") != "architecture"
+                    and issue.get("fingerprint") not in active_fingerprints
+                ):
+                    issue["status"] = "resolved"
+                    issue["updated_at"] = now
+                    issue.setdefault("metadata", {})["resolved_by"] = "tester_auto"
+                    resolved_count += 1
+            if resolved_count > 0:
+                self._write_unlocked(data)
+        return resolved_count
+
+    def save(self) -> None:
+        pass
+
+    def get_issues(self) -> list[dict[str, Any]]:
+        return self.list_issues()
+
