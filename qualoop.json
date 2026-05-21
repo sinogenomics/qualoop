@@ -1,0 +1,6 @@
+{
+  "methodologyRoot": ".",
+  "minValueScore": 60,
+  "minQualifiedPerRound": 1,
+  "maturity": "L1"
+}
