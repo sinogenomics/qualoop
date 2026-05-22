@@ -172,6 +172,7 @@ class QualoopPlanner:
             )
             if issue:
                 scorer.evaluate_and_score(issue, round_id)
+                store.update(issue["id"], metadata=issue.get("metadata"))
                 added_count += 1
                 
         store.save()

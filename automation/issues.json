@@ -263,6 +263,150 @@
       },
       "created_at": "2026-05-22T16:10:08+00:00",
       "updated_at": "2026-05-22T16:41:07+00:00"
+    },
+    {
+      "id": "680e0eaa-808b-4b03-ba83-db5566156ebe",
+      "severity": "high",
+      "type": "architecture",
+      "description": "[方法论产品化（首要）] Milestone: Implement goals and mechanisms aligned with '方法论产品化（首要）'.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "automation/",
+        "docs/"
+      ],
+      "fingerprint": "d3358bd35f20b947",
+      "metadata": {
+        "goal_alignment_note": "Directly implements core goal: 方法论产品化（首要）",
+        "output_kind": "improvement",
+        "value_score": 88,
+        "value_score_rationale": "Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:44:35.651355Z",
+        "scorer_round_id": "plan_20260522_164435"
+      },
+      "created_at": "2026-05-22T16:44:35+00:00",
+      "updated_at": "2026-05-22T16:44:35+00:00"
+    },
+    {
+      "id": "f9fe79e2-7036-48a5-b8a0-164f6b2a29e6",
+      "severity": "high",
+      "type": "architecture",
+      "description": "[可移植与可渐进采纳] Milestone: Implement goals and mechanisms aligned with '可移植与可渐进采纳'.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "automation/",
+        "docs/"
+      ],
+      "fingerprint": "99a0e6894b1a1734",
+      "metadata": {
+        "goal_alignment_note": "Directly implements core goal: 可移植与可渐进采纳",
+        "output_kind": "improvement",
+        "value_score": 88,
+        "value_score_rationale": "Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:44:35.669043Z",
+        "scorer_round_id": "plan_20260522_164435"
+      },
+      "created_at": "2026-05-22T16:44:35+00:00",
+      "updated_at": "2026-05-22T16:44:35+00:00"
+    },
+    {
+      "id": "52909df0-a678-4c5d-b223-cd847dc0d1b2",
+      "severity": "high",
+      "type": "architecture",
+      "description": "[规模化协作下的质量可观测性] Milestone: Implement goals and mechanisms aligned with '规模化协作下的质量可观测性'.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "automation/",
+        "docs/"
+      ],
+      "fingerprint": "068d8a7b04644702",
+      "metadata": {
+        "goal_alignment_note": "Directly implements core goal: 规模化协作下的质量可观测性",
+        "output_kind": "improvement",
+        "value_score": 88,
+        "value_score_rationale": "Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:44:35.683726Z",
+        "scorer_round_id": "plan_20260522_164435"
+      },
+      "created_at": "2026-05-22T16:44:35+00:00",
+      "updated_at": "2026-05-22T16:44:35+00:00"
+    },
+    {
+      "id": "955726cd-ee66-4715-8716-4a1cbe99ae30",
+      "severity": "high",
+      "type": "architecture",
+      "description": "[与 CI/CD、AI 辅助开发共存] Milestone: Implement goals and mechanisms aligned with '与 CI/CD、AI 辅助开发共存'.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "automation/",
+        "docs/"
+      ],
+      "fingerprint": "b884739c5fc8259d",
+      "metadata": {
+        "goal_alignment_note": "Directly implements core goal: 与 CI/CD、AI 辅助开发共存",
+        "output_kind": "improvement",
+        "value_score": 88,
+        "value_score_rationale": "Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:44:35.699217Z",
+        "scorer_round_id": "plan_20260522_164435"
+      },
+      "created_at": "2026-05-22T16:44:35+00:00",
+      "updated_at": "2026-05-22T16:44:35+00:00"
+    },
+    {
+      "id": "a476ea36-6e39-45f9-b79c-1e1fa60cf383",
+      "severity": "high",
+      "type": "architecture",
+      "description": "[三前提的审查文化（贯穿每轮）] Milestone: Implement goals and mechanisms aligned with '三前提的审查文化（贯穿每轮）'.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "automation/",
+        "docs/"
+      ],
+      "fingerprint": "7649a87d8427b641",
+      "metadata": {
+        "goal_alignment_note": "Directly implements core goal: 三前提的审查文化（贯穿每轮）",
+        "output_kind": "improvement",
+        "value_score": 88,
+        "value_score_rationale": "Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:44:35.715479Z",
+        "scorer_round_id": "plan_20260522_164435"
+      },
+      "created_at": "2026-05-22T16:44:35+00:00",
+      "updated_at": "2026-05-22T16:44:35+00:00"
+    },
+    {
+      "id": "cca8e7c6-4af3-4ac5-9b78-f1ee8c6c73b0",
+      "severity": "high",
+      "type": "architecture",
+      "description": "[安全与节制的自动修复文化] Milestone: Implement goals and mechanisms aligned with '安全与节制的自动修复文化'.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "automation/",
+        "docs/"
+      ],
+      "fingerprint": "a75f23bef48dee79",
+      "metadata": {
+        "goal_alignment_note": "Directly implements core goal: 安全与节制的自动修复文化",
+        "output_kind": "improvement",
+        "value_score": 88,
+        "value_score_rationale": "Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:44:35.728113Z",
+        "scorer_round_id": "plan_20260522_164435"
+      },
+      "created_at": "2026-05-22T16:44:35+00:00",
+      "updated_at": "2026-05-22T16:44:35+00:00"
     }
   ],
   "meta": {

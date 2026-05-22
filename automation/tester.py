@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tester agent: deep probes, static checks, API contract, regression, E2E."""
 from __future__ import annotations
 
@@ -404,8 +405,22 @@ def run_py_compile_regression(
                 )
         except subprocess.TimeoutExpired:
             findings.add(f"py_compile_{name}", f"py_compile {name}", "fail", "timeout")
+            created += _maybe_add_issue(
+                store,
+                severity="critical",
+                issue_type="static",
+                description=f"`{name}` py_compile timed out.",
+                paths=[name],
+            )
         except Exception as e:
             findings.add(f"py_compile_{name}", f"py_compile {name}", "fail", str(e))
+            created += _maybe_add_issue(
+                store,
+                severity="critical",
+                issue_type="static",
+                description=f"`{name}` py_compile error: {e}",
+                paths=[name],
+            )
     return created
 
 
@@ -472,7 +487,14 @@ def api_contract_check(
     app_py = project_root / "app.py"
     if not app_py.is_file():
         findings.add("api_contract", "API 路由契约", "fail", "app.py 缺失")
-        return 0
+        created += _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="api",
+            description="Required app.py is missing from project root.",
+            paths=["app.py"],
+        )
+        return created
 
     text = app_py.read_text(encoding="utf-8", errors="replace")
     routes = re.findall(r"@app\.route\(['\"]([^'\"]+)['\"]", text)
@@ -586,6 +608,13 @@ def check_auth_and_create_notebook(
             findings.add("auth_status_shape", "auth-status 响应结构", "warn", detail[:120])
     else:
         findings.add("auth_status_shape", "auth-status", "fail", detail[:200], category="functional")
+        created += _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="functional",
+            description=f"Auth status check failed: {detail[:200]}",
+            metadata={"detail": detail},
+        )
         return created
 
     if not auth_ready:

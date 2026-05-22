@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Scheduler: assigns open issues to executors with path leases."""
 from __future__ import annotations
 
@@ -64,7 +65,7 @@ def _auto_score_fact_issues(store: IssueStore, logger) -> int:
     updated = 0
     scorer = QualoopScorer()
     for issue in store.list_issues(status_filter=STATUSES_OPEN):
-        if issue.get("metadata", {}).get("value_qualified") is True:
+        if "value_score" in issue.get("metadata", {}):
             continue
         if issue.get("type") not in _FACT_TYPES:
             continue
