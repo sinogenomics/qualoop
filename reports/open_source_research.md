@@ -47,14 +47,42 @@ graph LR
 
 ---
 
+### 📅 第二次调研（2026-05-23）: 深入分析 Mentat 的块级代码编辑机制与 Devin 的 ReAct 自纠错双向闭环机制
+
+#### 1. Mentat (面向终端的多文件协同编辑器)
+*   **核心创新：增量式块级代码修改与语法树感知 (Incremental Block Editing)**
+    *   *机制原理*：不同于一般的 AI 编程工具生成全量文件（极耗费 Token 且易中断），或者仅生成脆弱的 Diff Patch，Mentat 构建了一套自定义的代码块修改解析器。模型以特定的结构化文本语法输出欲修改的区块（包含定位上下文的代码行），Mentat 通过词法解析器将这些“块（Blocks）”与物理文件对齐，实现多文件并发、原子化的精确落库。
+    *   *AST 语法树感知*：利用语法树定位被破坏的类签名或未闭合括号，保障了多文件级重构时的精准定位。
+
+#### 2. Devin / AutoGPT (自主软件工程 Agent)
+*   **核心创新一：ReAct (Reason + Act) 规划与动态重规划循环**
+    *   *机制原理*：Devin 在接收到目标后，由 Planner 进行任务拆解并生成逐步规划（Plan）。在每步执行中，Agent 进入 `思索 (Reasoning) -> 选择工具执行 (Action) -> 观测结果并抓取日志 (Observation) -> 修正规划 (Re-planning)` 的持续状态机循环。若执行中报错（例如库版本冲突、测试失败），Agent 不会放弃或等待人工介入，而是将报错作为新的 Observation 自动迭代 Plan，实现闭环自纠错。
+*   **核心创新二：机械化与语义化双层验证机制 (Dual-Layer Verification)**
+    *   *机制原理*：集成系统级验证工具（机械层：编译检查、Lint 扫描、Pytest 运行）与智能体验证工具（语义层：由独立的审查/验证 Agent 进行差异比对）。
+*   **核心创新三：团队本地规范注入机制 (Rules/Knowledge Base)**
+    *   *机制原理*：允许在项目根目录下存在 `.rules` 规则库。在运行开始时，Agent 自动将这些本地规范合并到系统 Prompt 中，解决 Agent 代码风格与团队规范“脱节”的问题。
+
+```mermaid
+graph TD
+    User[用户需求] -->|输入| Plan[Planner 生成任务规划]
+    Plan -->|执行子任务| Tool[工具执行: Shell/Edit/Browser]
+    Tool -->|环境观测反馈| Obs[Observation 抓取结果与日志]
+    Obs -->|异常/报错| Replan[Re-planning 动态修正规划]
+    Replan -->|更新子任务| Tool
+    Obs -->|测试通过| Verify[Dual-Layer 校验机制]
+    Verify -->|验证通过| Done[完成交付]
+```
+
+---
+
 ## 📊 跨维度深度对比分析
 
-| 维度 | Qualoop (L1-L3 当前实现) | SWE-agent | Aider | 补充性价值与 Qualoop 演进方向 |
-| :--- | :--- | :--- | :--- | :--- |
-| **上下文管理** | 静态读取特定文件与 issues 列表 | 无，通过 ACI 限制只读特定行区间 | Tree-sitter PageRank 仓库地图 | **极高**：引入 Tree-sitter 构建 Qualoop 代码地图，极大降低 Tester 的上下文开销。 |
-| **执行安全性** | 本地终端直接运行，无沙盒 | Docker / AWS Modal 沙盒隔离 (SWE-ReX) | 本地 Git 自动 Commit/Rollback 防灾 | **高**：L3 级 Executor 应支持本地虚拟沙盒或临时分支防灾机制。 |
-| **命令交付形式** | 自然语言转 Python 脚本或 CLI 运行 | 专为 Agent 裁剪的高密 ACI 指令集 | 命令行快捷指令 + Chat 面板 | **高**：设计 `qualoop-shell`，消除 Windows 平台 CLI 命令执行不兼容问题。 |
-| **智能体架构** | 五/六角色（从发现到验证闭环） | 单一 Agent 状态循环 (Action Loop) | 经典的双模型 (Architect/Editor) 协同 | **中**：将 Executor 进一步细分为 Planner/Editor 双层，解耦复杂算法设计与文本修改。 |
+| 维度 | Qualoop (L1-L3 当前实现) | SWE-agent | Aider | Mentat | Devin / AutoGPT | 补充性价值与 Qualoop 演进方向 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **上下文管理** | 静态读取特定文件与 issues 列表 | 无，通过 ACI 限制只读特定行区间 | Tree-sitter PageRank 仓库地图 | 依赖交互式多文件 Context 选择 | 动态 Memory 载入 + 本地规则库 | **极高**：结合 PageRank 代码地图与本地 `.rules` 规范注入，兼顾框架性能与团队规范。 |
+| **执行安全性** | 本地终端直接运行，无沙盒 | Docker / AWS Modal 沙盒隔离 (SWE-ReX) | 本地 Git 自动 Commit/Rollback 防灾 | 本地 Git 自动备份与撤销 | 完整的云端虚拟机容器沙盒隔离 | **高**：L3 级 Executor 应支持本地虚拟沙盒、临时分支防灾或虚拟机隔离。 |
+| **命令交付形式** | 自然语言转 Python 脚本或 CLI 运行 | 专为 Agent 裁剪的高密 ACI 指令集 | 命令行快捷指令 + Chat 面板 | 交互式终端 UI 操作 | Web UI 交互及实时终端终端串流 | **高**：设计 `qualoop-shell` 和受限 ACI 工具，消除系统环境异构带来的执行副作用。 |
+| **智能体架构** | 五/六角色（从发现到验证闭环） | 单一 Agent 状态循环 (Action Loop) | 经典的双模型 (Architect/Editor) 协同 | 单 Agent 高密交互模式 | ReAct 自主规划与动态重规划状态机 | **极高**：升级 Executor，引入动态重规划（Re-planning）自纠错状态机，解决自动修复低成功率痛点。 |
 
 ---
 
@@ -69,7 +97,7 @@ graph LR
 
 ### 2. 智能体冲突预防与并发机制 (ACI & Concurrency)
 *   **来源参考**：SWE-agent ACI (Agent-Computer Interface)
-*   **提炼价值**：避免让 AI 角色直面底层的 Bash 或 PowerShell 环境。前几次 Windows 系统兼容性 Bug（如 `&&` 连接符故障）本质就是底层 OS CLI 不一致引入的。
+*   **提炼价值**：避免让 AI 角色直面底层的 Bash 或 PowerShell 环境。前几次 Windows系统兼容性 Bug（如 `&&` 连接符故障）本质就是底层 OS CLI 不一致引入的。
 *   **Qualoop 升级方向**：
     > [!IMPORTANT]
     > **升级建议二（Qualoop-ACI）**：为 Tester 和 Executor 提供高密度的中介层 API（例如抽象出 `FileViewer.read_range(file, start, end)` 和 `ShellExecutor.safe_run(cmd)`），不允许 Agent 随意编写原始命令行语句，以此实现跨 OS（Windows/macOS/Linux）行为一致性。
@@ -87,3 +115,24 @@ graph LR
 *   **Qualoop 升级方向**：
     > [!NOTE]
     > **升级建议四（Executor 精细解耦）**：将 `automation/executors/` 下的修复动作划分为 **Planner-Executor**（由 Claude 3.5 或 o1-mini 生成修复逻辑说明）和 **Diff-Editor**（由 DeepSeek 快速生成具体的 patch），两者通过结构化 json 桥接，规避“幻觉”和“输出代码缺失”痛点。
+
+### 5. 增量式块级代码修改与严格语法校验 (Block-based Editing & AST Check)
+*   **来源参考**：Mentat (Block Edit Parser)
+*   **提炼价值**：避免因模型生成大段文件带来 Token 耗尽和生成格式损坏，对变动范围实施最小的行级别精确替换，并进行语法完备性分析。
+*   **Qualoop 升级方向**：
+    > [!TIP]
+    > **升级建议五（块编辑与 AST 校验）**：规范 Executor 的文件写入逻辑，开发特定的 `BlockPatchParser`。在执行补丁应用前，先通过 Python 内建的 `ast.parse` 解析被编辑文件，对比修改前后的 AST 结构以确保补丁未造成语法错误（如未闭合的圆括号/缩进错误）。
+
+### 6. 动态重规划（Re-planning）与基于环境反馈的闭环纠错 (Re-planning Loop)
+*   **来源参考**：Devin / AutoGPT (ReAct Loop)
+*   **提炼价值**：自动修复往往一次难以成功（如改了 A 导致 B 单测失败）。如果只是简单抛出异常退出，自动化价值会大打折扣。
+*   **Qualoop 升级方向**：
+    > [!IMPORTANT]
+    > **升级建议六（自纠错与重规划状态机）**：为 Executor 引入有界自纠错循环状态机。当 Verifier 反馈编译报错或单测失败时，捕获异常堆栈和错误日志，再次唤起修复 Agent 进行 `Re-planning`。最大自愈尝试限制设为 3 次，超过则置信度归零并自动降级为 `requires_human: true`。
+
+### 7. 本地开发规范注入与团队规约约束 (Localized Rule Injection)
+*   **来源参考**：Devin (Rules/Knowledge Base Injection)
+*   **提炼价值**：通用 LLM 的修复策略可能不符合团队的具体编程习惯或底层安全限制，需要本地化知识以约束其生成路径。
+*   **Qualoop 升级方向**：
+    > [!NOTE]
+    > **升级建议七（Qualoop-Rules 规约注入）**：在业务项目根目录支持 `.qualoop/rules/` 目录，允许团队以 Markdown 编写具体的代码规范（如“禁止使用全局变量”、“测试类命名规则”）。Tester 在生成检测指标、Scorer 在价值评分、Executor 在修改代码时，系统自动将匹配的规则作为 Context 提示词注入。
