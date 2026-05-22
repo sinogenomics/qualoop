@@ -1040,10 +1040,11 @@ e:/path/to/qualoop
                 <td>
                   <strong>新增框架自升级校验规则与动态目标覆盖率审计</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    在 <code>tester.py</code> 中新增 <code>check_qualoop_self_upgrade</code> 规则校验函数，利用 Git 动态监测 Qualoop 框架代码变更与 <code>development-report.html</code> 升级记录的同步情况，强制规范版本记录维护；同时在 <code>AGENTS.md</code> 中补充了该自我升级与维护规则，形成制度化约束。
+                    1. <strong>动态目标审计与覆盖率验证</strong>：在 <code>tester.py</code> 中新增 <code>check_goals_and_coverage</code>，使 Qualoop 能够动态解析 <code>GOALS.md</code> 指针中的全部目标媒介格式，审计后端 <code>app.py</code> 中的接口实现，并静态检索 <code>simple_e2e_test.py</code> 等测试套件中是否包含实质性的二进制/结构体合法性校验（如 ID3, ftyp, %PDF 等头特征），解决纯接口状态码假绿与 Mock 文件损坏漏测问题。<br />
+                    2. <strong>框架自升级校验规则</strong>：在 <code>tester.py</code> 中新增 <code>check_qualoop_self_upgrade</code> 校验项，结合 <code>AGENTS.md</code> 的约束，利用 Git 状态检测 Qualoop 自动化框架代码变更与网页版开发报告更新的同步情况，强制避免升级记录漏记。
                   </div>
                   <div class="table-tags">
-                    <span>Self-Upgrade-Rule</span><span>Compliance</span><span>tester.py</span><span>AGENTS.md</span>
+                    <span>Goal-Compliance-Audit</span><span>check_goals_and_coverage</span><span>Self-Upgrade-Rule</span><span>Compliance</span><span>tester.py</span><span>AGENTS.md</span>
                   </div>
                 </td>
                 <td>
