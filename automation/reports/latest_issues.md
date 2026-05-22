@@ -1,7 +1,7 @@
 # Qualoop — Latest issues
 
-Generated: `2026-05-22T17:32:39.649098Z`  
-Round: `pass_20260522_173239`  
+Generated: `2026-05-22T18:01:41.947098Z`  
+Round: `pass_20260522_180141`  
 Qualified this round: **18** (max score: 94)
 
 ---

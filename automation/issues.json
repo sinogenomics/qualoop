@@ -423,11 +423,11 @@
         "value_score": 80,
         "value_score_rationale": "Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.",
         "value_qualified": true,
-        "scored_at": "2026-05-22T17:32:39.635389Z",
-        "scorer_round_id": "pass_20260522_173239"
+        "scored_at": "2026-05-22T18:01:41.931038Z",
+        "scorer_round_id": "pass_20260522_180141"
       },
       "created_at": "2026-05-22T16:45:14+00:00",
-      "updated_at": "2026-05-22T17:32:39+00:00"
+      "updated_at": "2026-05-22T18:01:41+00:00"
     }
   ],
   "meta": {

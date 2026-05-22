@@ -144,16 +144,109 @@ graph TD
 
 ---
 
+### 📅 第五次调研（2026-05-23）: 深入分析 LangGraph 的状态图持久化、CrewAI 的层级角色委派与 AutoGen 的自适应会话协作
+
+#### 1. LangGraph (状态机与图驱动的智能体框架)
+*   **核心创新一：基于有向有环图的状态持久化与回滚（State Graph & Checkpointing）**
+    *   *机制原理*：LangGraph 将智能体协同建模为有向有环图（Nodes & Edges）。图的流转状态由全局 State Schema 约束。每当一个节点（如 Tester 或 Executor）完成执行后，LangGraph 内置的 Checkpointer 会将当前 State 完整序列化并写入持久化存储（如 SQLite 或 PostgreSQL 数据库）。这不仅使系统具备了跨会话的短期与长期记忆，还支持“时间旅行（Time Travel）”——开发者或系统可以随时提取历史快照，修改过去的状态，并沿着新的图分支重新运行，极大增强了异常控制与逻辑回溯能力。
+*   **核心创新二：状态机中断与人工接管阀门（State Interrupts & Human-in-the-Loop）**
+    *   *机制原理*：为了实现安全、受控的自动化，LangGraph 允许在进入特定节点（例如 Merge 代码入库）前设置中断（Interrupts）。流转到达此节点时，系统会自动挂起并保存现场 State。外部系统（Web UI 或 CLI）可抓取该状态并渲染给人类开发人员。人类可以编辑状态数据、直接提供输入或者选择通过/驳回。系统在收到信号后自动反序列化并恢复图的执行，实现无缝的人机协同。
+
+#### 2. CrewAI (基于 SOP 的角色扮演与层级化任务委派框架)
+*   **核心创新一：声明式角色划分与自适应经理人调度（Declarative Role-Playing & Manager Delegation）**
+    *   *机制原理*：CrewAI 严格模拟了人类企业的组织架构。它通过定义 `Agent`（配有专属 `role`, `goal`, `backstory`）和 `Task`（配有 `description`, `expected_output`）来构建执行团队。在流转调度上，除了经典的顺序流（Sequential Flow），CrewAI 重点推出了层级流（Hierarchical Flow）——由一个内建的 Manager Agent（可指定为 GPT-4 或 Claude 等强模型）充当总规划师，自主对复杂 Issue 进行子任务拆解、分派给不同的专业 Agent，并收集结果进行多轮审查，直至交付输出符合预期。
+*   **核心创新二：三层记忆机制与工具执行缓存（Three-Layer Memory & Tool Cache）**
+    *   *机制原理*：为避免 Agent 在长时间开发中产生上下文漂移，CrewAI 引入了三层记忆：
+        1.  *短期记忆 (Short-Term Memory)*：特定 Task 范围内的上下文传递。
+        2.  *长期记忆 (Long-Term Memory)*：基于向量数据库（ChromaDB）的历史开发结果与事实库检索。
+        3.  *实体记忆 (Entity Memory)*：在多个独立任务中共享的全局实体和项目元数据。
+        同时，CrewAI 内建了 Tool Cache，在一次运行周期中，若多个 Agent 调用同一工具且入参一致，系统将直接读取缓存，使 API Token 消耗和延迟下降了 30% 以上。
+
+#### 3. Microsoft AutoGen (基于自适应对话的多智能体协作)
+*   **核心创新一：动态发言人轮候机制与群聊管理器（Group Chat & Dynamic Speaker Selection）**
+    *   *机制原理*：AutoGen 的底层思想是“会话即计算”。多智能体协作被抽象为共享同一个 Chat Context。由一个 `GroupChatManager` 充当总控调度器，在每一轮对话结束时，系统将结合当前的历史会话、各 Agent 的描述（System Prompt）以及自定义路由图，通过算法或强模型动态挑选出最适合在下一轮发言的 Agent（例如当 Programmer 代码报错时，自动选择 Executor 运行，Executor 反馈报错后，自适应跳转选择 Critic 挑错）。这种设计极大地解放了硬编码的顺序结构，使多智能体协作能动态应对突发异常。
+*   **核心创新二：原生代码执行器与 Docker 沙箱边界（Code Executor & Docker Sandboxing）**
+    *   *机制原理*：AutoGen 提供了高度解耦的 `CodeExecutor` 抽象。它不仅能在本地环境安全执行代码段（Python / Bash），更原生地深度集成了 Docker 沙箱。LLM 产生的每一段代码会被自动提取、保存为临时文件，并在秒级拉起的隔离 Docker 容器内执行。执行完毕后，执行日志、控制台输出和异常 Traceback 会自动回传至 Chat 历史中作为 Observation，最大程度保护主机免受越权写入和恶意命令的伤害。
+
+```mermaid
+graph TD
+    subgraph LangGraph
+        Graph[有环图 Nodes/Edges] --> Checkpoint[(Checkpointer 状态库)]
+        Graph --> Interrupt{中断点: Human-in-the-Loop}
+    end
+    subgraph CrewAI
+        Manager[Manager Agent Manager] -->|自适应分派| Agents[Role-Playing Agents]
+        Agents -->|使用缓存减少 Token| Cache[(Tool Cache 缓存)]
+        Agents -->|读写记忆库| Memory[(三层 Memory 数据库)]
+    end
+    subgraph AutoGen
+        Group[群聊 Context] --> Speaker{发言人选择算法}
+        Speaker -->|自适应发言| ActiveAgent[活动 Agent]
+        ActiveAgent -->|生成代码| Box[Docker 隔离执行沙箱]
+        Box -->|结果回传| Group
+    end
+```
+
+---
+
+### 📅 第六次调研（2026-05-23）: 深入分析 OpenHands 的事件流架构与沙盒安全、LlamaIndex Workflows 的事件驱动状态流、Semantic Kernel 的原生工具调用与插件化治理
+
+#### 1. OpenHands (原 OpenDevin，领先的自主软件工程 Agent 平台)
+*   **核心创新一：基于 append-only 日志的 Event Stream（事件流）架构**
+    *   *机制原理*：OpenHands 的核心是一个持久化的、仅追加的事件总线。所有的系统变更、用户输入、Agent 意图（`CmdRunAction`, `FileWriteAction`）和环境观测（`CmdOutputObservation`）都被建模为强类型的 JSON 事件。这使得：
+        1.  *全量重放与调试*：整个 Agent 执行会话可以像回放录像一样被完整重建、分析和审计。
+        2.  *解耦的安全审查器（Security Analyzer）*：安全模块能够订阅事件流，并在 Action 实际下发至 Runtime 执行前进行拦截和静态/动态分析，阻止恶意的删除文件或反弹 Shell 等行为。
+*   **核心创新二：高度解耦的 Docker 沙盒隔离与 Runtime API**
+    *   *机制原理*：OpenHands 的运行环境（Runtime）与 Agent 控制层完全分离。Runtime 运行在隔离的 Docker 容器中，容器内启动了一个轻量级的 ACI 服务（Action Execution Server）。Agent 通过 HTTP/WebSocket 接口向容器内发送执行指令，并在沙盒中通过 `tmux` 维持持久会话，确保命令如环境依赖配置、编译测试等的执行不会污染或危害宿主机系统。
+
+#### 2. LlamaIndex Workflows (声明式事件驱动工作流框架)
+*   **核心创新一：完全解耦的 @step 事件订阅机制 (Decoupled Event-Driven Steps)**
+    *   *机制原理*：传统的 DAG 必须在流转前明确指定节点之间的物理依赖连线。LlamaIndex Workflows 通过将执行步骤声明为 `@step`，并在参数中指定其所订阅的事件类型（如 `IssueDetectedEvent`）来完成隐式连接。步骤执行完成后，通过 `return Event(...)` 抛出新事件。底层的 Orchestrator 负责根据事件类型动态路由，自然而然地支持极其复杂的环状流转（Loops）、动态分支（Branching）和多路并发执行。
+*   **核心创新二：类型安全状态管理与 Context 注入**
+    *   *机制原理*：工作流拥有一个线程/协程安全的全局 `Context` 状态对象。开发者可以为事件载荷（Payload）和 Context 中的 State 声明严格的类型规范。Orchestrator 在启动时对图的类型匹配进行静态校验，防止运行时因类型不匹配（如 Executor 拿到了格式不匹配的 Issue 结构）引发 Agent 崩溃。
+
+#### 3. Microsoft Semantic Kernel (企业级 AI 编排内核)
+*   **核心创新一：原生 Function Calling 替代硬编码规划 (LLM Native Tool Execution)**
+    *   *机制原理*：Semantic Kernel 逐步废弃了传统的 `StepwisePlanner` 等生成文本规划脚本的模式，转而原生集成大模型的 Function Calling 功能。通过 `auto_invoke_kernel_functions` 设置，内核在收到目标后进入一个 `LLM 决策工具 -> 调用 native 插件 -> 反馈 observation 到上下文 -> LLM 下一步决策` 的高密执行循环，极大地提升了复杂规划和工具调用的执行准确率与反应速度。
+*   **核心创新二：插件化治理与语义/原生模板解耦 (Plugin Governance)**
+    *   *机制原理*：SK 提供了高度标准化的插件生命周期管理。一个 Plugin 可以包含 Native Code（如文件读写、测试运行）或 Semantic Prompt（如 Scorer 的打分 Prompt）。Prompt 模板支持 Handlebars/Liquid 等工业级渲染引擎，实现了提示词与执行逻辑的彻底解耦。同时，支持全局依赖注入（Dependency Injection），可为不同的角色（如 Planner/Executor）按需绑定不同的 LLM 连接配置和工具集。
+
+```mermaid
+graph TD
+    subgraph OpenHands-EventStream
+        EventBus[(Append-Only Event Stream)]
+        Agent_OH[OpenHands Agent] -->|Emit Action Event| EventBus
+        Security[Security Analyzer] -->|Subscribe & Inspect| EventBus
+        EventBus -->|Approved Action| Runtime[Docker Sandbox Runtime]
+        Runtime -->|Emit Observation Event| EventBus
+    end
+    subgraph LlamaIndex-Workflows
+        StepA[@step: Consumer of StartEvent] -->|returns CustomEvent| Orchestrator[Event Router]
+        Orchestrator -->|routes by type| StepB[@step: Consumer of CustomEvent]
+        StepB -->|returns LoopEvent| Orchestrator
+        Orchestrator -->|routes back| StepA
+    end
+    subgraph Semantic-Kernel
+        Kernel[Semantic Kernel Core] -->|Dependency Injection| Plugins[Plugins: Native & Semantic]
+        Kernel -->|Auto Invoke Loop| LLM_Native[LLM Native Tool Calling]
+    end
+```
+
+---
+
 ## 📊 跨维度深度对比分析
 
 | 维度 | Qualoop (当前) | 参考开源产品 (关键实现) | 补充性价值与 Qualoop 演进方向 |
 | :--- | :--- | :--- | :--- |
-| **上下文管理** | 静态读取特定文件与 issues 列表 | **Aider**: Tree-sitter PageRank 代码地图<br>**Devin**: 动态 Memory + 本地规则库 | **极高**：结合 PageRank 代码地图与本地 `.rules` 规范注入，兼顾框架性能与团队规范。 |
-| **执行安全性** | 本地终端直接运行，无沙盒 | **SWE-agent**: Docker 沙盒隔离 (SWE-ReX)<br>**Aider**: Git 自动 Commit/Rollback<br>**GPT-Pilot**: SQLite 状态保存与回滚 | **高**：支持本地虚拟沙盒、临时分支防灾或虚拟机隔离，结合微步 Git 状态回滚机制防范代码丢失。 |
-| **命令/交互形式** | 自然语言转 Python 脚本或 CLI | **SWE-agent**: 裁剪的高密 ACI 指令集<br>**GPT-Pilot**: 交互式微任务人工确认 | **高**：设计 `qualoop-shell` 和受限 ACI 工具，结合人机交互接管机制，避免盲目写码。 |
+| **上下文管理** | 静态读取特定文件与 issues 列表 | **Aider**: Tree-sitter PageRank 代码地图<br>**Devin**: 动态 Memory + 本地规则库<br>**CrewAI**: 三层记忆机制 (短期/长期/实体) | **极高**：结合 PageRank 代码地图与 CrewAI 风格 of 向量库长期记忆，避免长周期运行中上下文失效。 |
+| **执行安全性** | 本地终端直接运行，无沙盒 | **SWE-agent**: Docker 沙盒隔离 (SWE-ReX)<br>**Aider**: Git 自动 Commit/Rollback<br>**GPT-Pilot**: SQLite 状态保存与回滚<br>**AutoGen**: 原生 Docker 执行器<br>**OpenHands**: Docker Sandbox Runtime & 持续 Tmux 会话 | **高**：支持本地虚拟沙盒、临时分支防灾或 Docker 隔离，结合微步 Git 状态回滚机制防范代码丢失。 |
+| **命令/交互形式** | 自然语言转 Python 脚本或 CLI | **SWE-agent**: 裁剪的高密 ACI 指令集<br>**GPT-Pilot**: 交互式微任务人工确认<br>**LangGraph**: 状态机中断与时间旅行 | **高**：设计 `qualoop-shell` 和受限 ACI 工具，结合 LangGraph 状态中断的人机交互接管机制，避免盲目写码。 |
 | **自愈与控制链** | 一次性执行修复，失败则退出 | **Devin**: ReAct 自主规划与 3 次重规划循环<br>**GPT-Pilot**: 编译/测试失败自动触发 Debug 流 | **极高**：为 Executor 引入有界自纠错循环状态机，当 Verifier 失败时自动重规划。 |
 | **评估打分机制** | 单一的 LLM 打分（五维定性量表） | **DSPy**: 指标引导的 Compiler 自动调优<br>**DeepEval**: G-Eval 多维 Logprobs 期望评分 | **极高**：评估指标模块化，引入 G-Eval 的 Evaluation Steps 概率加权打分，并支持 Few-shot 自动调优。 |
-| **智能体架构** | 五角色顺序流（发现→评分→分派→执行） | **MetaGPT**: 基于 SOP 的发布-订阅事件总线<br>**Aider**: 双模型 (Architect/Editor) 协同 | **极高**：引入事件总线解耦角色，添加双模型（策划与编辑器）协同与 SOP 智能体互审闸门。 |
+| **智能体架构** | 五角色顺序流（发现→评分→分派→执行） | **MetaGPT**: 基于 SOP 的发布-订阅事件总线<br>**CrewAI**: 经理人自适应任务委派机制<br>**AutoGen**: 动态发言人自适应群聊会话<br>**LlamaIndex**: @step 事件驱动路由与 Context 状态 | **极高**：引入事件总线解耦角色，支持大任务的层级委派（Manager-Executor），并加入自适应群聊进行错误纠错。 |
+| **可观测与可审计** | 静态生成 markdown 报告与 json 状态 | **OpenHands**: Append-Only Event Stream 日志 | **中高**：通过基于 JSONL 的事件流记录全量运行轨迹，便于调试、状态重建与全周期追溯审计。 |
+| **防退化与安全防御** | 无静态安全检查，完全信任 LLM 生成 | **OpenHands**: 拦截式 Security Analyzer 安全审查 | **高**：在命令执行器层增加拦截式安全检测插件，识别并拦截破坏性命令。 |
+| **插件化与治理** | 硬编码在 scripts 目录，依赖特定接口 | **Semantic Kernel**: 标准化插件目录与依赖注入 | **中高**：将发现探针（Tester）、修复动作（Executor）插件化，通过依赖注入管理各角色关联的 LLM 实例与配置。 |
 
 ---
 
@@ -187,7 +280,7 @@ graph TD
 *   **提炼价值**：不同等级的模型擅长不同的子任务。推理角色需要强逻辑但不需要输出格式敏感代码；编辑角色需要对 Diff 和占位符非常敏感。
 *   **Qualoop 升级方向**：
     > [!NOTE]
-    > **升级建议四（Executor 精细解耦）**：将 `automation/executors/` 下的修复动作划分为 **Planner-Executor**（由 Claude 3.5 或 o1-mini 生成修复逻辑说明）和 **Diff-Editor**（由 DeepSeek 快速生成具体的 patch），两者通过结构化 json 桥接，规避“幻觉”和“输出代码缺失”痛点。
+    > **升级建议四（Executor 精细解耦）**：将 `automation/executors/` 下的修复动作划分为 **Planner-Executor**（由 Claude 3.5 或 o1-mini 生成修复逻辑说明） and **Diff-Editor**（由 DeepSeek 快速生成具体的 patch），两者通过结构化 json 桥接，规避“幻觉”和“输出代码缺失”痛点。
 
 ### 5. 增量式块级代码修改与严格语法校验 (Block-based Editing & AST Check)
 *   **来源参考**：Mentat (Block Edit Parser)
@@ -229,6 +322,33 @@ graph TD
 *   **提炼价值**：传统的 LLM 打分（Scorer）主观性强，且 Prompt instructions 极难手动维护到完美。必须实现打分步骤结构化，并通过数学概率消除波动，同时能够基于历史高低分数据实现 Prompts 自优化。
 *   **Qualoop 升级方向**：
     > [!TIP]
-    > **升级建议十一（Scorer 自动调优与 Optimizer）**：参考 DSPy，允许 Scorer 在 `qualoop.json` 中配置 `auto_tune: true`。在空轮或低分轮率超过阈值时，自动收集历史中 `value_qualified: true` 的高分样例和不合格的低分样例，利用 Few-shot Optimizer 动态优化 Tester 和 Scorer 的 instructions 模板，以自动化方式提升后续的检测和打分召回率。
+    > **升级建议十一（Scorer 自动调优与 Optimizer）**：参考 DSPy，允许 Scorer 在 `qualoop.json` 中配置 `auto_tune: true`。在空轮或低分轮率超过阈值时，自动收集历史中 `value_qualified: true` 的高分样例和不合格 of 低分样例，利用 Few-shot Optimizer 动态优化 Tester 和 Scorer 的 instructions 模板，以自动化方式提升后续的检测和打分召回率。
     >
     > **升级建议十二（G-Eval 多维 Logprobs 加权评分）**：参考 DeepEval，升级 Scorer 的 LLM 评分器。不再要求 LLM 直接返回一个数值，而是先生成详细的评估步骤（Evaluation Steps），接着在打分时提取打分 token 的 Logprobs，通过概率加权计算得分，规避大模型打分的极端值和主观偏移，实现高确定性的价值打分闭环。
+
+### 11. 状态图持久化、层级化委派与多智能体动态自适应会话 (State Graph, Delegation & Adaptability)
+*   **来源参考**：LangGraph (Checkpointer & Interrupt) / CrewAI (Manager Delegation) / AutoGen (Group Chat & Dynamic Speaker)
+*   **提炼价值**：当自动化规模扩大后，单一的顺序线性调用链无法应对复杂的多模块关联 Issue；同时，状态回滚（Time Travel）和即时的人机交互接管对于长周期自动化运行至关重要。
+*   **Qualoop 升级方向**：
+    > [!IMPORTANT]
+    > **升级建议十三（基于状态图的 checkpoint 与时间旅行）**：参考 LangGraph，将 Qualoop 核心的调度与控制回路重构为有向有环状态图（State Graph）。在 `automation/` 下引入 `StateCheckpointer` 模块，在每次 Tester 发现、Scorer 评分、Scheduler 分配和 Executor 执行的前后自动对全局上下文和代码版本进行序列化快照（Checkpoint）。当遇到未预期失败或并发死锁时，支持自动“时间旅行”回滚到上一个正常的 Checkpoint 节点重试。
+    >
+    > **升级建议十四（层级经理人任务分派）**：参考 CrewAI，为 Scheduler 引入 `Hierarchical` 调度模式。在面对横跨多模块、多文件的超大型缺陷 Issue 时，不直接指派单个 Executor，而是拉起一个 Manager Executor，由其动态生成执行规划并委派给多个特定领域的子 Executor，最终由 Manager 收集反馈进行 Review 汇总，实现复杂任务的分解治理。
+    >
+    > **升级建议十五（Critic-Programmer 自适应会话纠错）**：参考 AutoGen，在 L3 级别的 Executor 执行单元测试修复遇到瓶颈（例如连续两次自纠错失败）时，自适应组建一个临时“诊断聊天组”（Programmer-Critic-Tester）。让 Programmer（写 Diff 的 Executor）、Critic（Scorer）与 Tester 在统一的对话上下文中进行动态发言轮候。由 Tester 运行测试反馈控制台 Traceback，Scorer 实时评估并提出具体修改策略，引导 Programmer 精准调整，直至测试成功或耗尽 Token 额度。
+
+### 12. 事件驱动流、安全防御拦截与企业级插件治理 (Event-Driven, Security & Plugin Governance)
+*   **来源参考**：OpenHands (Event Stream, Security Analyzer) / LlamaIndex Workflows (@step Routing) / Semantic Kernel (auto-invoke & Plugins)
+*   **提炼价值**：随着 Qualoop 系统成熟度向 L3/L4 推进，事件驱动和拦截防御是系统安全和易扩展性的基石；同时，解耦 Prompt 模板与 Native 插件，并引入原生工具调用也是提升系统高可用度的核心方向。
+*   **Qualoop 升级方向**：
+    > [!IMPORTANT]
+    > **升级建议十六（基于事件流的日志与重放系统 - Event Stream Log）**：参考 OpenHands，在 `automation/` 引入追加型事件日志机制（`automation/reports/event_stream.jsonl`）。记录每个角色的每一次 Action（如 `create_issue`、`assign_task`、`run_test`）与 Observation。使整个 Qualoop 运行状态可追溯、可审计，并在故障时可重放重现。
+    >
+    > **升级建议十七（命令安全扫描器插件 - Security Guardrail）**：参考 OpenHands，在 Executor 执行底层 Shell 指令前，挂载安全检测拦截插件。该插件基于静态模式匹配和黑名单库（如危险命令 `rm -rf /`、未授权网络请求、越权证书获取等）对即将运行的命令进行审查。发现异常立即驳回执行，并向 Issues Store 写入 `type: security_alert` 的 Issue。
+    >
+    > **升级建议十八（类型安全事件路由 - Type-Safe Event Router）**：参考 LlamaIndex Workflows，使用 Python 类装饰器（如 `@qualoop_event_handler`）替换硬编码的顺序执行链。Tester 产生 Issue 时抛出 `IssueDetectedEvent`，Orchestrator 自动寻找订阅该事件的 Scorer 进行打分；打分完抛出 `IssueScoredEvent` 触发 Scheduler 分配。这种机制能实现 Tester、Scorer、Scheduler 和 Executor 的插件化扩展，让用户能轻松插拔新的测试通道或修复算法。
+    >
+    > **升级建议十九（原生函数调用替换规划 - Native Function Calling）**：参考 Semantic Kernel，在 Executor 或 Planner 与 LLM 交互时，配置模型原生的 Function Calling/Tool Call 接口，而不是让模型随意写控制台命令。Executor 应在 System Prompt 中被赋予预先定义的 Native API 函数签名，以提高调用准确率并避免 OS 命令拼写错误。
+    >
+    > **升级建议二十（结构化 Prompt 模板引擎与依赖注入）**：参考 Semantic Kernel，将系统内所有的 LLM Prompt（包括 Scorer 五维打分细则、Executor 编写规范、Tester 分析规则）统一抽取到 `.qualoop/prompts/` 目录中，支持 Handlebars 语法渲染。通过 `qualoop.json` 实现各角色模型参数（如 Scorer 绑定 GPT-4o-mini，Executor 绑定 Claude-3.5-Sonnet）的依赖注入与隔离配置。
+
