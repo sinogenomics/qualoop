@@ -608,6 +608,28 @@ e:/path/to/qualoop
               <span>L1-Observe</span><span>Spelling-Correction</span><span>sys.path-Injection</span><span>Robustness</span>
             </div>
           </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 11 · 调试</div>
+            <div class="tl-title">Planner 与 Scheduler 逻辑校准、Tester 缺陷上报增强与组件编码声明</div>
+            <div class="tl-body">
+              优化 Planner 机制确保大模型生成的里程碑 Issue 评分能在 IssueStore 中即时持久化；修正 Scheduler 嵌套读取 value_qualified 的元数据结构路径，规避 L3 自动分派与执行的安全隐患；增强 Tester 逻辑以捕获 py_compile 超时/错误及缺失关键 app.py 的重大异常并实时写入台账；为 scheduler.py 与 tester.py 补充 coding declaration，全方位提高系统健壮性。
+            </div>
+            <div class="tl-tags">
+              <span>Planner-Fix</span><span>Scheduler-Lock</span><span>Tester-Reporting</span><span>Coding-Decl</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 12 · 调研与规划</div>
+            <div class="tl-title">多维前沿开源项目深度对标与 25 条升级建议提炼</div>
+            <div class="tl-body">
+              针对 SWE-agent, Aider, Devin, MetaGPT, LangGraph, CrewAI, AutoGen, OpenHands, LlamaIndex, Semantic Kernel, E2B, Langfuse, ChatDev 开展七轮持续半小时的严谨深度调研。从沙盒执行、监控链路、协同决策等维度深入对标，成功提炼 25 项促进 Qualoop 自主进化的升级建议。
+            </div>
+            <div class="tl-tags">
+              <span>OpenSource-Research</span><span>Ref-Systems</span><span>Evolution-Roadmap</span><span>Aesthetics</span>
+            </div>
+          </div>
         </div>
       </section>
 
