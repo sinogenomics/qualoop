@@ -150,6 +150,36 @@ def cmd_check(args):
     print(f"Report path:   {report_path}")
     print("="*50 + "\n")
 
+    # Scan for active issues requiring human review
+    human_issues = []
+    for issue in store.get_issues():
+        status = issue.get("status")
+        if status == "resolved":
+            continue
+        
+        meta = issue.get("metadata") or {}
+        requires_human = meta.get("requires_human", False)
+        
+        # Check attempts against config limits
+        fixer_cfg = (config.get("executors") or {}).get("fixer") or {}
+        max_attempts = int(fixer_cfg.get("max_static_attempts", 3))
+        attempts = int(meta.get("fix_attempts", 0))
+        
+        if requires_human or (attempts >= max_attempts):
+            human_issues.append(issue)
+
+    if human_issues:
+        print("="*50)
+        print("⚠️  REQUIRES HUMAN REVIEW:")
+        for hi in human_issues:
+            severity = hi.get("severity", "medium").upper()
+            desc = hi.get("description", "").split("\n")[0]
+            if len(desc) > 80:
+                desc = desc[:77] + "..."
+            paths = ", ".join(hi.get("paths") or [])
+            print(f"- [{severity}] {desc} (Paths: {paths})")
+        print("="*50 + "\n")
+
 def main():
     parser = argparse.ArgumentParser(description="Qualoop CLI Automation Tool (L1)")
     subparsers = parser.add_subparsers(dest="command", required=True)

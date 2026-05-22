@@ -19,6 +19,7 @@ if sys.platform == "win32":
 from ..issue_store import IssueStore
 from ..reports import write_latest_snapshot
 from ..tester import _health_probe_url, _http_probe, run_legacy_script
+from ..error_parser import extract_clean_error
 from .base import complete_issue, run_executor_loop
 
 
@@ -72,7 +73,8 @@ def _verify_python(project_root: Path, paths: list[str]) -> tuple[bool, str]:
         ok, out = run_legacy_script(project_root, p, timeout=90)
         notes.append(f"{p}: {'OK' if ok else 'FAIL'}")
         if not ok:
-            return False, "\n".join(notes) + "\n" + out[-600:]
+            clean_err = extract_clean_error(out)
+            return False, "\n".join(notes) + "\n" + clean_err
     return True, "\n".join(notes) or "python verification passed"
 
 
@@ -158,7 +160,7 @@ def handle_verify(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
     else:
         # Antigravity LLM Integration for Verifier Failure
         try:
-            from ..llm_client import get_llm_config, call_antigravity_llm
+            from ..llm_client import get_llm_config, call_antigravity_llm, LLMBudgetExceededError, LLMClientError
             llm_cfg = get_llm_config(project_root)
             if llm_cfg.get("provider") == "antigravity":
                 prompt = (
@@ -173,6 +175,11 @@ def handle_verify(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
                 ai_ret = call_antigravity_llm(project_root, prompt, model=model)
                 logger.info("Verifier initiated Antigravity IDE diagnostic session: %s", ai_ret)
                 detail = detail + f"\n\n### 🛡️ Antigravity AI 验证失败诊断：\n{ai_ret}"
+        except LLMBudgetExceededError as e:
+            logger.warning("⚠️ LLM Budget Exceeded for Verifier: %s. Releasing issue %s for later retry.", e, iid[:8])
+            complete_issue(store, iid, resolved=False, note=f"LLM Budget Exceeded: {e}. Releasing assignment.")
+            write_latest_snapshot(store)
+            return
         except Exception as e:
             logger.warning("Failed to invoke Antigravity LLM for Verifier: %s", e)
 
