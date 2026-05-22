@@ -38,8 +38,8 @@ def _utc_now_iso() -> str:
 
 def _state_path(cfg: dict, automation_dir: Path) -> Path:
     guard = _guard_cfg(cfg)
-    rel = guard.get("state_file") or "state/external_touch_usage.json"
-    path = Path(rel)
+    rtl = guard.get("state_file") or "state/external_touch_usage.json"
+    path = Path(rtl)
     if not path.is_absolute():
         path = automation_dir / path
     path.parent.mkdir(parents=True, exist_ok=True)

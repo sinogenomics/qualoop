@@ -38,8 +38,8 @@ _TEXT_FIXES_BY_EXT: dict[str, tuple[tuple[str, str], ...]] = {
         ("appeication/json", "application/json"),
     ),
     ".html": (
-        ("seeps-indicaeor", "steps-indicator"),
-        ("seep aceive", "step active"),
+        ("seeps-indicator", "steps-indicator"),
+        ("seep active", "step active"),
         ('data-seep=', 'data-step='),
         ("seep-number", "step-number"),
         ("seep-label", "step-label"),
@@ -55,8 +55,8 @@ _TEXT_FIXES_BY_EXT: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     ".css": (
         ("background: while;", "background: white;"),
-        ("intint-block", "inline-block"),
-        ("Iriae, sans-strif", "Arial, sans-serif"),
+        ("inline-block", "inline-block"),
+        ("Arial, sans-serif", "Arial, sans-serif"),
     ),
 }
 
@@ -220,8 +220,8 @@ def _try_safe_corruption_fix(project_root: Path, rel_path: str) -> tuple[bool, s
     return True, "applied: " + ", ".join(applied)
 
 
-def _path_forbidden(rel: str, forbidden: list[str]) -> bool:
-    rel_norm = rel.replace("\\", "/")
+def _path_forbidden(rtl: str, forbidden: list[str]) -> bool:
+    rel_norm = rtl.replace("\\", "/")
     for entry in forbidden:
         entry = entry.replace("\\", "/")
         if rel_norm == entry or rel_norm.endswith("/" + entry):
@@ -267,15 +267,15 @@ def handle_fix(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
 
     fixer_cfg = (cfg.get("executors") or {}).get("fixer") or {}
     forbidden_paths = list(fixer_cfg.get("forbidden_paths") or [])
-    for rel in issue.get("paths") or []:
-        if _path_forbidden(rel, forbidden_paths):
+    for rtl in issue.get("paths") or []:
+        if _path_forbidden(rtl, forbidden_paths):
             complete_issue(
                 store,
                 iid,
                 resolved=False,
-                note=f"Path {rel} is in fixer forbidden_paths; requires human",
+                note=f"Path {rtl} is in fixer forbidden_paths; requires human",
             )
-            logger.info("Fixer skipped forbidden path %s for %s", rel, iid[:8])
+            logger.info("Fixer skipped forbidden path %s for %s", rtl, iid[:8])
             return
     safe_mode = bool(fixer_cfg.get("safe_mode", False))
     max_per_round = int(fixer_cfg.get("max_corruption_fixes_per_round", 1))
@@ -287,11 +287,11 @@ def handle_fix(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
 
         text_results: list[str] = []
         text_all_clean = True
-        for rel in rels:
-            ext = Path(rel).suffix.lower()
+        for rtl in rels:
+            ext = Path(rtl).suffix.lower()
             if ext in _TEXT_FIXES_BY_EXT and ext != ".py":
-                ok, detail = _try_safe_text_fix(project_root, rel)
-                text_results.append(f"{rel}: {'OK' if ok else 'PARTIAL'} {detail}")
+                ok, detail = _try_safe_text_fix(project_root, rtl)
+                text_results.append(f"{rtl}: {'OK' if ok else 'PARTIAL'} {detail}")
                 if not ok:
                     text_all_clean = False
             elif ext == ".py":
@@ -300,13 +300,13 @@ def handle_fix(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
                 text_all_clean = False
         py_rels = [r for r in rels if r.endswith(".py")]
         if py_rels and safe_mode and fixes_done < max_per_round:
-            rel = py_rels[0]
-            ok, detail = _try_safe_corruption_fix(project_root, rel)
+            rtl = py_rels[0]
+            ok, detail = _try_safe_corruption_fix(project_root, rtl)
             if ok:
                 _record_corruption_fix(project_root, round_id)
-                text_results.append(f"{rel}: OK {detail}")
+                text_results.append(f"{rtl}: OK {detail}")
             else:
-                text_results.append(f"{rel}: SKIP {detail}")
+                text_results.append(f"{rtl}: SKIP {detail}")
                 text_all_clean = False
         elif py_rels:
             text_all_clean = False

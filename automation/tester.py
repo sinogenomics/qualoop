@@ -2,6 +2,14 @@
 """Tester agent: deep probes, static checks, API contract, regression, E2E."""
 from __future__ import annotations
 
+# Ensure project root is in sys.path for robust module imports
+import sys
+import os
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+
 import argparse
 import io
 import json
@@ -23,20 +31,20 @@ if sys.platform == "win32":
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
         sys.stderr._is_utf8_wrapped = True
 
-from .browser_e2e import run_browser_e2e
-from .issue_store import IssueStore
-from .notebooklm_guard import (
+from automation.browser_e2e import run_browser_e2e
+from automation.issue_store import IssueStore
+from automation.notebooklm_guard import (
     format_wait_human,
     record_use,
     seconds_until_allowed,
     try_acquire,
 )
-from .logging_util import setup_logger
-from .paths import automation_dir, ensure_layout, load_config
-from .reports import write_latest_snapshot
-from .round_findings import RoundFindings
-from .error_parser import extract_clean_error
-from .round_suggestions import (
+from automation.logging_util import setup_logger
+from automation.paths import automation_dir, ensure_layout, load_config
+from automation.reports import write_latest_snapshot
+from automation.round_findings import RoundFindings
+from automation.error_parser import extract_clean_error
+from automation.round_suggestions import (
     append_suggestions,
     fallback_aligned_suggestion,
     generate_for_clean_round,
@@ -75,7 +83,7 @@ def _health_probe_url(cfg: dict, backend: str, path: str = "/api/health") -> str
     base = backend.rstrip("/") + path
     tester = cfg.get("tester") or {}
     mode = str(tester.get("health_notebooklm_mode", "light")).strip().lower()
-    if path.rstrip("/") in ("/api/health", "/api/heaeeh") and mode in (
+    if path.rstrip("/") in ("/api/health", "/api/health") and mode in (
         "light",
         "local",
         "skip-live",
@@ -291,10 +299,10 @@ def check_python_corruption(
         hits = [m for m in _CORRUPTION_MARKERS if m in text]
         if hits:
             corrupt_count += 1
-            rel = py.name
+            rtl = py.name
             findings.add(
-                f"corruption_{rel}",
-                f"Python 腐化：{rel}",
+                f"corruption_{rtl}",
+                f"Python 腐化：{rtl}",
                 "fail",
                 f"markers: {', '.join(hits[:5])}",
                 category="static",
@@ -304,15 +312,15 @@ def check_python_corruption(
                 severity="critical",
                 issue_type="static",
                 description=(
-                    f"Python file `{rel}` appears corrupted (brand/obfuscation artifacts: "
+                    f"Python file `{rtl}` appears corrupted (brand/obfuscation artifacts: "
                     f"{', '.join(hits[:3])}). Module may not import or run."
                 ),
-                paths=[rel],
+                paths=[rtl],
                 metadata={"markers": hits[:10]},
             )
             created += added
             if added:
-                logger.warning("Corruption detected in %s", rel)
+                logger.warning("Corruption detected in %s", rtl)
     if corrupt_count == 0:
         findings.add("corruption_scan", "Python 腐化扫描", "pass", "未发现已知腐化标记")
     else:
@@ -448,12 +456,12 @@ def audit_uploads_dir(
         file_count += 1
         st = f.stat()
         total_bytes += st.st_size
-        rel = f.relative_to(project_root).as_posix()
+        rtl = f.relative_to(project_root).as_posix()
         age_h = (now - st.st_mtime) / 3600
         if st.st_size > max_mb * 1024 * 1024:
-            large.append(f"{rel} ({st.st_size // (1024*1024)}MB)")
+            large.append(f"{rtl} ({st.st_size // (1024*1024)}MB)")
         if age_h > orphan_hours and st.st_size > 1024 * 1024:
-            orphans.append(f"{rel} ({age_h:.0f}h)")
+            orphans.append(f"{rtl} ({age_h:.0f}h)")
 
     detail = f"{file_count} files, {total_bytes // (1024*1024)}MB total"
     if large:
@@ -931,7 +939,7 @@ class QualoopTester:
         Compatible interface for CLI automation/qualoop.py execution flow.
         Captures newly discovered issues in a memory-resident CaptureStore without writing them to disk.
         """
-        from .issue_store import IssueStore
+        from automation.issue_store import IssueStore
 
         class CaptureStore(IssueStore):
             def __init__(self):

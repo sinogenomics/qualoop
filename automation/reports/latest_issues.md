@@ -1,8 +1,8 @@
 # Qualoop — Latest issues
 
-Generated: `2026-05-22T16:43:39.240292Z`  
-Round: `pass_20260522_164339`  
-Qualified this round: **11** (max score: 94)
+Generated: `2026-05-22T17:32:39.649098Z`  
+Round: `pass_20260522_173239`  
+Qualified this round: **18** (max score: 94)
 
 ---
 
@@ -48,6 +48,40 @@ No issues require human intervention at this moment.
   - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
   - Scorer Rationale: *Milestone architecture planning issue: [安全与节制的自动修复文化] Milestone: Implement goals and mechanisms aligned with '安全与节制的自动修复文化'.*
   - Goal Alignment: *Directly implements core goal: 安全与节制的自动修复文化*
+
+- **[HIGH]** [方法论产品化（首要）] Milestone: Implement goals and mechanisms aligned with '方法论产品化（首要）'. (fingerprint: `d3358bd35f20b947`)
+  - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.*
+  - Goal Alignment: *Directly implements core goal: 方法论产品化（首要）*
+
+- **[HIGH]** [可移植与可渐进采纳] Milestone: Implement goals and mechanisms aligned with '可移植与可渐进采纳'. (fingerprint: `99a0e6894b1a1734`)
+  - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.*
+  - Goal Alignment: *Directly implements core goal: 可移植与可渐进采纳*
+
+- **[HIGH]** [规模化协作下的质量可观测性] Milestone: Implement goals and mechanisms aligned with '规模化协作下的质量可观测性'. (fingerprint: `068d8a7b04644702`)
+  - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.*
+  - Goal Alignment: *Directly implements core goal: 规模化协作下的质量可观测性*
+
+- **[HIGH]** [与 CI/CD、AI 辅助开发共存] Milestone: Implement goals and mechanisms aligned with '与 CI/CD、AI 辅助开发共存'. (fingerprint: `b884739c5fc8259d`)
+  - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.*
+  - Goal Alignment: *Directly implements core goal: 与 CI/CD、AI 辅助开发共存*
+
+- **[HIGH]** [三前提的审查文化（贯穿每轮）] Milestone: Implement goals and mechanisms aligned with '三前提的审查文化（贯穿每轮）'. (fingerprint: `7649a87d8427b641`)
+  - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.*
+  - Goal Alignment: *Directly implements core goal: 三前提的审查文化（贯穿每轮）*
+
+- **[HIGH]** [安全与节制的自动修复文化] Milestone: Implement goals and mechanisms aligned with '安全与节制的自动修复文化'. (fingerprint: `a75f23bef48dee79`)
+  - Affected paths: `automation/`, `docs/` | Status: `open` | Score: **88** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | High observability: planning milestone. | High coordination: planning issue. | Verifiable planning milestone. | High safety: architectural definition only. | High durability: fundamental architectural baseline.*
+  - Goal Alignment: *Directly implements core goal: 安全与节制的自动修复文化*
+
+- **[HIGH]** Required app.py is missing from project root. (fingerprint: `46510d1299ea8737`)
+  - Affected paths: `app.py` | Status: `open` | Score: **80** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.*
 
 
 

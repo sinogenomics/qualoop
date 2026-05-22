@@ -93,8 +93,8 @@ def _save_screenshot(page: Any, cfg: dict, label: str) -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = shots / f"browser_e2e_{label}_{stamp}.png"
     page.screenshot(path=str(path), full_page=True)
-    rel = path.relative_to(cfg["_project_root"]).as_posix()
-    return rel
+    rtl = path.relative_to(cfg["_project_root"]).as_posix()
+    return rtl
 
 
 def _record_failure(

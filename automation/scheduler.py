@@ -2,14 +2,22 @@
 """Scheduler: assigns open issues to executors with path leases."""
 from __future__ import annotations
 
+# Ensure project root is in sys.path for robust module imports
+import sys
+import os
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+
 import argparse
 from datetime import datetime, timedelta, timezone
 
-from .issue_store import IssueStore, STATUSES_OPEN
-from .locks import LockTimeout, path_lock, store_lock
-from .logging_util import setup_logger
-from .paths import ensure_layout, load_config, maturity_at_least
-from .reports import write_latest_snapshot
+from automation.issue_store import IssueStore, STATUSES_OPEN
+from automation.locks import LockTimeout, path_lock, store_lock
+from automation.logging_util import setup_logger
+from automation.paths import ensure_layout, load_config, maturity_at_least
+from automation.reports import write_latest_snapshot
 
 # issue type -> executor name
 _TYPE_ROUTING = {
@@ -53,7 +61,7 @@ _FACT_TYPES = frozenset(
 )
 
 
-from .scorer import QualoopScorer
+from automation.scorer import QualoopScorer
 
 def _auto_score_fact_issues(store: IssueStore, logger) -> int:
     """Uses the unified QualoopScorer to score open fact-type issues.
@@ -146,8 +154,8 @@ def run_once(cfg: dict | None = None) -> dict:
         if is_verifier:
             lock_paths = [f"issue:{issue.get('id', '')[:8]}"]
         try:
-            for rel in lock_paths:
-                with path_lock(project_root, rel, timeout=2.0):
+            for rtl in lock_paths:
+                with path_lock(project_root, rtl, timeout=2.0):
                     pass
         except LockTimeout:
             locked = False

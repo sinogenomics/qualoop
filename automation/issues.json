@@ -407,6 +407,27 @@
       },
       "created_at": "2026-05-22T16:44:35+00:00",
       "updated_at": "2026-05-22T16:44:35+00:00"
+    },
+    {
+      "id": "20206805-3277-4103-9d7d-1c6573f2a1b7",
+      "severity": "high",
+      "type": "api",
+      "description": "Required app.py is missing from project root.",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [
+        "app.py"
+      ],
+      "fingerprint": "46510d1299ea8737",
+      "metadata": {
+        "value_score": 80,
+        "value_score_rationale": "Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T17:32:39.635389Z",
+        "scorer_round_id": "pass_20260522_173239"
+      },
+      "created_at": "2026-05-22T16:45:14+00:00",
+      "updated_at": "2026-05-22T17:32:39+00:00"
     }
   ],
   "meta": {
