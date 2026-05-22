@@ -9,7 +9,10 @@
     "markdown_link_check": true,
     "json_schema_check": true,
     "script_syntax_check": true,
-    "drift_check": true
+    "drift_check": true,
+    "goal_audit": {
+      "enabled": false
+    }
   },
   "planner": {
     "enabled": true,

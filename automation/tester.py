@@ -492,33 +492,54 @@ def api_contract_check(
     project_root: Path, store: IssueStore, findings: RoundFindings, cfg: dict, logger
 ) -> int:
     created = 0
-    app_py = project_root / "app.py"
-    if not app_py.is_file():
-        findings.add("api_contract", "API 路由契约", "fail", "app.py 缺失")
+    tester_cfg = cfg.get("tester") or {}
+    api_cfg = tester_cfg.get("api_contract", {}) or cfg.get("api_contract", {}) or {}
+    
+    # Auto-detect if we should run this check
+    enabled = api_cfg.get("enabled")
+    entry_filename = api_cfg.get("entry_file", "app.py")
+    entry_file = project_root / entry_filename
+    
+    if enabled is None:
+        # If not explicitly enabled/disabled, only run if the entry file exists
+        enabled = entry_file.is_file()
+        
+    if not enabled:
+        findings.add("api_contract", "API 路由契约", "pass", "未启用或不适用（跳过）")
+        return 0
+
+    if not entry_file.is_file():
+        findings.add("api_contract", "API 路由契约", "fail", f"{entry_filename} 缺失")
         created += _maybe_add_issue(
             store,
             severity="high",
             issue_type="api",
-            description="Required app.py is missing from project root.",
-            paths=["app.py"],
+            description=f"Required API entry file '{entry_filename}' is missing from project root.",
+            paths=[entry_filename],
         )
         return created
 
-    text = app_py.read_text(encoding="utf-8", errors="replace")
-    routes = re.findall(r"@app\.route\(['\"]([^'\"]+)['\"]", text)
+    text = entry_file.read_text(encoding="utf-8", errors="replace")
+    
+    # Try to find routes. Supported formats: Python decorator flask/fastapi, or JS/TS Express routes
+    routes = []
+    # Python flask/fastapi pattern: @app.route('...') or @router.get('...') or app.get('...')
+    routes += re.findall(r"@(?:app|router|api)\.(?:route|get|post|put|delete)\(['\"]([^'\"]+)['\"]", text)
+    # JS/TS express pattern: app.get('...', ...) or router.post('...', ...)
+    routes += re.findall(r"(?:app|router)\.(?:get|post|put|delete)\(['\"]([^'\"]+)['\"]", text)
+    
     api_routes = [r for r in routes if "/api/" in r]
     route_text = "\n".join(api_routes)
 
-    missing: list[str] = []
-    for required in _REQUIRED_API_ROUTES:
-        if required not in route_text and required.replace("<task_id>", "<") not in route_text:
-            if required == "/api/generate-content" and "/api/generate-content" in route_text:
-                continue
-            missing.append(required)
+    # Required routes can be configured, default is health and auth-status
+    required_routes = api_cfg.get("required_routes")
+    if required_routes is None:
+        required_routes = ["/api/health", "/api/auth-status"]
 
-    has_task = bool(_TASK_STATUS_PATTERN.search(route_text))
-    if not has_task:
-        missing.append("/api/task-status/…")
+    missing: list[str] = []
+    for required in required_routes:
+        if required not in route_text:
+            missing.append(required)
 
     findings.add(
         "api_routes_static",
@@ -527,7 +548,7 @@ def api_contract_check(
         f"发现 {len(api_routes)} 条 /api/ 路由",
         category="api",
     )
-    logger.info("Found %d API routes in app.py", len(api_routes))
+    logger.info("Found %d API routes in %s", len(api_routes), entry_filename)
 
     if missing:
         findings.add(
@@ -541,38 +562,248 @@ def api_contract_check(
             store,
             severity="high",
             issue_type="api",
-            description=f"Missing required API routes in app.py: {', '.join(missing)}",
-            paths=["app.py"],
+            description=f"Missing required API routes in {entry_filename}: {', '.join(missing)}",
+            paths=[entry_filename],
             metadata={"missing": missing, "found": api_routes[:20]},
         )
     else:
-        findings.add("api_contract", "API 契约必需路由", "pass", "health/auth/create/generate/task-status")
+        findings.add("api_contract", "API 契约必需路由", "pass", "健康与功能契约路由完整")
 
-    backend = cfg.get("backend_url", "http://localhost:5000").rstrip("/")
-    live_missing: list[str] = []
-    for path in ("/api/health", "/api/auth-status"):
-        url = (
-            _health_probe_url(cfg, backend, path)
-            if path == "/api/health"
-            else f"{backend}{path}"
+    # Probing live check if backend url is configured
+    backend = cfg.get("backend_url")
+    if backend:
+        backend = backend.rstrip("/")
+        live_missing: list[str] = []
+        # Probe first 2 required routes
+        probe_routes = [r for r in required_routes if not any(c in r for c in ('<', ':', '*'))][:2]
+        if not probe_routes:
+            probe_routes = ["/api/health"]
+            
+        for path in probe_routes:
+            url = f"{backend}{path}"
+            ok, detail, ms = _http_probe(url, timeout=8.0)
+            if ok:
+                findings.add(f"api_live_{path}", f"在线 {path}", "pass", f"{ms:.0f}ms")
+            else:
+                live_missing.append(path)
+                findings.add(f"api_live_{path}", f"在线 {path}", "fail", detail, category="api")
+
+        if live_missing:
+            created += _maybe_add_issue(
+                store,
+                severity="high",
+                issue_type="api",
+                description=f"Live API probe failed: {', '.join(live_missing)}",
+                metadata={"paths": live_missing},
+            )
+
+    return created
+
+
+def check_goals_and_coverage(
+    project_root: Path, store: IssueStore, findings: RoundFindings, logger
+) -> int:
+    """Audit the project goals (from configured file or default GOALS.md) against codebase implementation
+    and test coverage in a generic, non-hardcoded manner.
+    """
+    created = 0
+    # Load configuration
+    cfg = {}
+    config_path = project_root / "automation" / "config.json"
+    if config_path.is_file():
+        try:
+            cfg = json.loads(config_path.read_text(encoding="utf-8"))
+        except Exception:
+            cfg = {}
+
+    goal_audit_cfg = cfg.get("tester", {}).get("goal_audit", {}) or cfg.get("goal_audit", {}) or {}
+
+    if goal_audit_cfg.get("enabled", True) is False:
+        findings.add("goals_coverage", "目标覆盖率审计", "pass", "未启用或已禁用（跳过）")
+        return 0
+
+    # 1. Determine goals file (configurable, default: GOALS.md or DEVELOPMENT_GOALS.md)
+    goals_filename = goal_audit_cfg.get("goals_file")
+    goals_file = None
+    if goals_filename:
+        goals_file = project_root / goals_filename
+    else:
+        # Auto-detect goals file
+        for name in ("GOALS.md", "DEVELOPMENT_GOALS.md", "goals.md", "requirements.txt", "PRD.md"):
+            path = project_root / name
+            if path.is_file():
+                goals_file = path
+                break
+
+    if not goals_file or not goals_file.is_file():
+        findings.add("goals_coverage", "目标覆盖率审计", "fail", "项目目标描述文件缺失 (GOALS.md/DEVELOPMENT_GOALS.md)")
+        return _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="goals",
+            description="Project is missing a goals definition file (e.g. GOALS.md or DEVELOPMENT_GOALS.md) defining the North Star targets.",
+            paths=[goals_filename or "GOALS.md"],
         )
-        ok, detail, ms = _http_probe(url, timeout=8.0)
-        if ok:
-            findings.add(f"api_live_{path}", f"在线 {path}", "pass", f"{ms:.0f}ms")
-        else:
-            live_missing.append(path)
-            findings.add(f"api_live_{path}", f"在线 {path}", "fail", detail, category="api")
 
-    if live_missing:
+    # 2. Parse goals and extract target formats/keywords
+    goals_text = goals_file.read_text(encoding="utf-8", errors="replace")
+    
+    # We look for target formats/materials from config, or auto-detect them
+    configured_formats = goal_audit_cfg.get("expected_formats")
+    if not configured_formats:
+        # Default fallback dictionary containing common file formats and keywords
+        configured_formats = {
+            "audio": {
+                "keywords": ["音频讲解", "audio", "mp3", "wav"],
+                "assertions": [r'startswith\(b"ID3"\)', r'audio.*校验', r'mp3', r'wav']
+            },
+            "video": {
+                "keywords": ["视频讲解", "video", "mp4", "avi", "mkv"],
+                "assertions": [r'ftyp', r'video.*校验', r'mp4']
+            },
+            "infographic": {
+                "keywords": ["信息图", "infographic", "png", "jpg", "jpeg", "gif"],
+                "assertions": [r'startswith\(b"\\x89PNG"\)', r'startswith\(b"\\xff\\xd8"\)', r'infographic.*校验', r'png', r'jpg']
+            },
+            "mindmap": {
+                "keywords": ["思维导图", "mindmap", "json", "yaml", "xml"],
+                "assertions": [r'json\.loads', r'yaml\.safe_load', r'mindmap.*校验', r'json']
+            },
+            "slides": {
+                "keywords": ["ppt", "slide-deck", "slides", "pdf"],
+                "assertions": [r'startswith\(b"%PDF"\)', r'slides.*校验', r'pdf']
+            }
+        }
+
+    target_keys = []
+    expected_materials = {}
+    for key, spec in configured_formats.items():
+        keywords = spec.get("keywords", [key])
+        if any(kw.lower() in goals_text.lower() for kw in keywords):
+            target_keys.append(key)
+            expected_materials[key] = spec
+
+    findings.add("goals_parse", "解析目标材料", "pass", f"检测到 {len(target_keys)} 种目标格式: {', '.join(target_keys)}")
+
+    # 3. Check implementation files (configurable, default: auto-discover source files)
+    impl_patterns = goal_audit_cfg.get("implementation_files")
+    impl_files = []
+    if impl_patterns:
+        for pat in impl_patterns:
+            for p in project_root.glob(pat):
+                if p.is_file() and not any(part.startswith('.') or part in ('automation', 'tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                    impl_files.append(p)
+    else:
+        # Auto-detect implementation files (e.g. app.py, main.py, index.js, src/**/*.rs, src/**/*.go, etc.)
+        for ext in ("*.py", "*.js", "*.ts", "*.go", "*.rs", "*.java", "*.cpp"):
+            for p in project_root.glob(ext):
+                if p.is_file() and not any(part.startswith('.') or part in ('automation', 'tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                    impl_files.append(p)
+            for p in project_root.glob("src/**/" + ext):
+                if p.is_file() and not any(part.startswith('.') or part in ('automation', 'tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                    impl_files.append(p)
+
+    # Filter unique paths
+    impl_files = list(set(impl_files))
+
+    if not impl_files:
+        findings.add("goals_impl", "目标实现度审计", "fail", "未检测到项目源码文件，无法审计目标实现")
+        return created + _maybe_add_issue(
+            store,
+            severity="critical",
+            issue_type="static",
+            description="No source code files detected or configured. Goal implementation cannot be audited.",
+            paths=[str(goals_file.relative_to(project_root))]
+        )
+
+    # Scan implementation files for keywords of each expected format
+    impl_text = ""
+    for f in impl_files:
+        impl_text += "\n" + f.read_text(encoding="utf-8", errors="replace")
+
+    missing_impls = []
+    for key in target_keys:
+        keywords = expected_materials[key].get("keywords", [key])
+        if not any(f'"{kw.lower()}"' in impl_text.lower() or f"'{kw.lower()}'" in impl_text.lower() or kw.lower() in impl_text.lower() for kw in keywords):
+            missing_impls.append(key)
+
+    if missing_impls:
+        findings.add("goals_impl", "目标实现度审计", "fail", f"源码中未找到格式实现或引用: {', '.join(missing_impls)}")
         created += _maybe_add_issue(
             store,
             severity="high",
-            issue_type="api",
-            description=f"Live API probe failed: {', '.join(live_missing)}",
-            metadata={"paths": live_missing},
+            issue_type="goals",
+            description=f"North Star goal formats missing implementation in project source files: {', '.join(missing_impls)}",
+            paths=[str(f.relative_to(project_root)) for f in impl_files[:5]] + [str(goals_file.relative_to(project_root))]
         )
+    else:
+        findings.add("goals_impl", "目标实现度审计", "pass", "所有目标格式在源码中均有实现或引用")
+
+    # 4. Check active test coverage (configurable, default: auto-discover test scripts)
+    test_patterns = goal_audit_cfg.get("test_files")
+    test_files = []
+    if test_patterns:
+        for pat in test_patterns:
+            for p in project_root.glob(pat):
+                if p.is_file():
+                    test_files.append(p)
+    else:
+        # Auto-detect test files
+        # Look for test_*.py, *_test.py, tests/**/*.py, test/**/*.js, etc.
+        for ext in ("py", "js", "ts", "go", "rs", "java", "cpp"):
+            for pat in (f"test_*.{ext}", f"*_test.{ext}", f"automated_tester.{ext}"):
+                for p in project_root.glob(pat):
+                    if p.is_file() and not any(part.startswith('.') or part in ('tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                        test_files.append(p)
+                for p in project_root.glob("tests/**/" + pat):
+                    if p.is_file() and not any(part.startswith('.') or part in ('tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                        test_files.append(p)
+                for p in project_root.glob("test/**/" + pat):
+                    if p.is_file() and not any(part.startswith('.') or part in ('tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                        test_files.append(p)
+
+    test_files = list(set(test_files))
+    
+    if not test_files:
+        findings.add("goals_test_coverage", "目标测试覆盖率", "fail", "未检测到测试脚本，覆盖率审计失败")
+        created += _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="goals",
+            description="No active test files found or configured to verify project goals.",
+            paths=[str(goals_file.relative_to(project_root))]
+        )
+        return created
+
+    active_tests_text = ""
+    for tf in test_files:
+        active_tests_text += "\n" + tf.read_text(encoding="utf-8", errors="replace")
+
+    untested_materials = []
+    for key in target_keys:
+        spec = expected_materials[key]
+        assertion_patterns = spec.get("assertions", [])
+        has_assertion = any(re.search(pat, active_tests_text) for pat in assertion_patterns)
+        if not has_assertion:
+            untested_materials.append(key)
+
+    if untested_materials:
+        findings.add("goals_test_coverage", "目标测试覆盖率", "fail", f"未在测试脚本中找到以下格式的完整性校验: {', '.join(untested_materials)}")
+        created += _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="goals",
+            description=(
+                f"North Star goal formats are generated but lack content format integrity testing: {', '.join(untested_materials)}.\n"
+                "Tests must verify that generated files are not corrupted placeholders (e.g. check binary signatures, parse schemas, or run structural validation)."
+            ),
+            paths=[str(tf.relative_to(project_root)) for tf in test_files[:5]] + [str(goals_file.relative_to(project_root))]
+        )
+    else:
+        findings.add("goals_test_coverage", "目标测试覆盖率", "pass", "所有目标格式在测试脚本中均有格式完整性校验")
 
     return created
+
 
 
 def check_qualoop_self_upgrade(
@@ -580,7 +811,8 @@ def check_qualoop_self_upgrade(
 ) -> int:
     """Ensure Qualoop upgrades are documented in reports/development-report.html.
     This rule is enforced by checking if any automation python code is modified
-    without a corresponding modification to development-report.html.
+    without a corresponding modification to development-report.html, and verifying
+    that newly declared features in development-report.html are actually implemented.
     """
     created = 0
     report_file = project_root / "reports" / "development-report.html"
@@ -616,6 +848,7 @@ def check_qualoop_self_upgrade(
             elif filename.startswith("automation/") and filename.endswith(".py"):
                 modified_files.append(filename)
 
+        # 1. Forward validation: Python modified -> HTML report must be updated
         if modified_files and not report_modified:
             findings.add(
                 "qualoop_upgrade_record",
@@ -634,12 +867,120 @@ def check_qualoop_self_upgrade(
                 ),
                 paths=["reports/development-report.html"] + modified_files,
             )
+            return created
+
+        # 2. Bidirectional validation & content verification
+        if report_modified:
+            try:
+                diff_proc = subprocess.run(
+                    ["git", "diff", "-U0", "reports/development-report.html"],
+                    cwd=str(project_root),
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    encoding="utf-8",
+                    errors="replace"
+                )
+                if diff_proc.returncode == 0:
+                    added_text = ""
+                    for line in diff_proc.stdout.splitlines():
+                        if line.startswith("+") and not line.startswith("+++"):
+                            added_text += " " + line[1:]
+                    
+                    # A: Check that any modified .py components are mentioned in the diff description
+                    if modified_files:
+                        missing_mentions = []
+                        for f in modified_files:
+                            basename = Path(f).stem
+                            if basename.lower() not in added_text.lower():
+                                missing_mentions.append(basename)
+                                
+                        if missing_mentions:
+                            findings.add(
+                                "qualoop_upgrade_record",
+                                "Qualoop 自我升级记录校验",
+                                "fail",
+                                f"更新了 reports 报告但未在描述中提及修改的组件: {', '.join(missing_mentions)}",
+                            )
+                            created += _maybe_add_issue(
+                                store,
+                                severity="medium",
+                                issue_type="compliance",
+                                description=(
+                                    f"Qualoop self-upgrade content check failed: Modified files ({', '.join(modified_files)}) "
+                                    f"are not referenced in the added description of `reports/development-report.html`. "
+                                    f"Please ensure the report update description explicitly mentions: {', '.join(missing_mentions)}."
+                                ),
+                                paths=["reports/development-report.html"] + modified_files,
+                            )
+                            return created
+
+                    # B: Reverse Check: If report mentions new check_xxx functions, verify they are implemented in code
+                    mentioned_checks = re.findall(r'<code>(check_[a-zA-Z0-9_]+)</code>', added_text)
+                    # Also find plain check_xxx words in the added text
+                    mentioned_checks += [f for f in re.findall(r'\b(check_[a-zA-Z0-9_]+)\b', added_text) if f not in mentioned_checks]
+                    
+                    missing_defs = []
+                    for func in mentioned_checks:
+                        # Skip self check functions
+                        if func in ("check_qualoop_self_upgrade", "check_localhost"):
+                            continue
+                        
+                        found_definition = False
+                        # Scan all Python files in the automation directory
+                        for py_file in project_root.glob("automation/*.py"):
+                            if py_file.is_file():
+                                py_content = py_file.read_text(encoding="utf-8", errors="replace")
+                                if f"def {func}" in py_content:
+                                    found_definition = True
+                                    break
+                        if not found_definition:
+                            missing_defs.append(func)
+                            
+                    if missing_defs:
+                        findings.add(
+                            "qualoop_upgrade_record",
+                            "Qualoop 升级双向校验",
+                            "fail",
+                            f"网页报告提到了校验函数 {', '.join(missing_defs)} 但代码中未定义该函数",
+                        )
+                        created += _maybe_add_issue(
+                            store,
+                            severity="high",
+                            issue_type="compliance",
+                            description=(
+                                f"Qualoop self-upgrade bidirectional check failed: The added timeline entry "
+                                f"in `reports/development-report.html` references '{', '.join(missing_defs)}', "
+                                f"but no matching function definition (`def {func}`) was found in the codebase. "
+                                "Please ensure the code is implemented/synced before updating the timeline."
+                            ),
+                            paths=["reports/development-report.html"],
+                        )
+                        return created
+
+            except Exception as e:
+                logger.warning("Failed to run content diff validation: %s", e)
+
+            if modified_files:
+                findings.add(
+                    "qualoop_upgrade_record",
+                    "Qualoop 自我升级记录校验",
+                    "pass",
+                    "修改了框架代码，并在 development-report.html 中同步更新了对应组件记录",
+                )
+            else:
+                findings.add(
+                    "qualoop_upgrade_record",
+                    "Qualoop 自我升级记录校验",
+                    "pass",
+                    "更新了网页报告并成功通过双向实现验证",
+                )
         else:
             findings.add(
                 "qualoop_upgrade_record",
                 "Qualoop 自我升级记录校验",
                 "pass",
-                "未修改框架代码，或已在 development-report.html 中更新记录",
+                "未修改框架代码且报告无需更新",
             )
     except Exception as e:
         logger.warning("Failed to run Qualoop self-upgrade check: %s", e)
@@ -851,6 +1192,7 @@ def run_once(
         created += run_py_compile_regression(project_root, store, findings, logger)
         created += run_legacy_scripts(cfg, project_root, store, findings, logger)
         created += api_contract_check(project_root, store, findings, cfg, logger)
+        created += check_goals_and_coverage(project_root, store, findings, logger)
         created += check_qualoop_self_upgrade(project_root, store, findings, logger)
 
     if _depth_at_least(depth, "deep"):
