@@ -9,7 +9,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 
 from automation.paths import load_config, get_abs_path
 from automation.issue_store import IssueStore
@@ -45,7 +45,7 @@ def cmd_init(args):
 def cmd_check(args):
     """Run a full Qualoop round (Discover -> Score -> Report) with optional depth escalation."""
     deep_mode = args.deep
-    round_id = f"pass_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+    round_id = f"pass_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     print(f"Starting Qualoop check round: {round_id} (deep={deep_mode})...")
 
     config = load_config()

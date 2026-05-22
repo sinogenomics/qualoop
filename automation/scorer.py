@@ -9,7 +9,7 @@ if _project_root not in sys.path:
 
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from automation.paths import load_config, get_abs_path
 from automation.goal_context import goal_rejection_reason, goal_summary_for_prompt
@@ -161,7 +161,7 @@ class QualoopScorer:
         Evaluate and score a single candidate issue according to the metric rubrics.
         Modifies the issue object in-place with Scorer metadata fields.
         """
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z"
         metadata = issue.setdefault("metadata", {})
 
         # Initialize metrics

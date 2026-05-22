@@ -159,10 +159,10 @@ class QualoopPlanner:
         store = IssueStore()
         added_count = 0
         
-        from datetime import datetime
+        from datetime import datetime, timezone
         from automation.scorer import QualoopScorer
         scorer = QualoopScorer()
-        round_id = f"plan_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        round_id = f"plan_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         
         for m in milestones:
             desc = f"[{m['name']}] {m['description']}"

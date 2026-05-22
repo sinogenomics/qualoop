@@ -1005,6 +1005,33 @@ e:/path/to/qualoop
                   <span class="status-badge status-yes">已推送</span>
                 </td>
               </tr>
+              <tr>
+                <td>
+                  <span class="stage-num">阶段 14</span>
+                  <span class="td-time">2026-05-23 01:15</span>
+                </td>
+                <td>
+                  <strong>修复 Python datetime.utcnow 废弃警告以提高控制台输出纯净度</strong>
+                  <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
+                    全面扫描并修改 Qualoop L1 运行链（包括 `qualoop.py`、`planner.py`、`reports.py` 和 `scorer.py`），将所有已废弃的 `datetime.utcnow()` 替换为时区感知的 `datetime.now(timezone.utc)`，避免控制台产生冗余的 API 弃用警告日志。
+                  </div>
+                  <div class="table-tags">
+                    <span>Deprecation-Fix</span><span>Datetime-TZ</span><span>Console-Cleanliness</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="sev-badge sev-low">低 (30/100)</span>
+                </td>
+                <td>
+                  控制台输出中混杂大量已废弃 Python API 的警告信息，降低了系统整体日志的整洁度。
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已解决</span>
+                </td>
+                <td>
+                  <span class="status-badge status-no">未推送</span>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

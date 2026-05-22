@@ -8,7 +8,7 @@ if _project_root not in sys.path:
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from automation.paths import get_abs_path, PROJECT_ROOT
 
 class QualoopReporter:
@@ -25,7 +25,7 @@ class QualoopReporter:
             for issue in scored_issues:
                 meta = issue.get("metadata", {})
                 record = {
-                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z",
                     "round_id": self.round_id,
                     "issue_id": issue["id"],
                     "fingerprint": issue["fingerprint"],
@@ -41,7 +41,7 @@ class QualoopReporter:
         log_path = os.path.join(self.reports_dir, "low_value_rounds.jsonl")
         with open(log_path, "a", encoding="utf-8") as f:
             record = {
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z",
                 "round_id": self.round_id,
                 "qualified_count": qualified_count,
                 "min_required": min_required
@@ -155,7 +155,7 @@ Issues that require a person (`open` + `requires_human`, or `wontfix` + `termina
         resolved_sec = build_sec_content(resolved, "No resolved issues logged yet.")
         abandoned_sec = build_sec_content(abandoned, "No closed or abandoned issues.")
 
-        generated_at = datetime.utcnow().isoformat() + "Z"
+        generated_at = datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z"
 
         # Substitute
         report_content = template
