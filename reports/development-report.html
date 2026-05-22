@@ -630,6 +630,17 @@ e:/path/to/qualoop
               <span>OpenSource-Research</span><span>Ref-Systems</span><span>Evolution-Roadmap</span><span>Aesthetics</span>
             </div>
           </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 13 · 部署与加固</div>
+            <div class="tl-title">Qualoop 跨目录运行加固与 Windows 终端 Unicode 兼容性修复 (Qualoop Path Resilience & Windows Console Unicode E2E Fix)</div>
+            <div class="tl-body">
+              修复在任意工作目录下直接调用 Python 脚本时的 `sys.path` 绝对导入兼容性问题；解决 Windows 控制台打印 Unicode 字符时的 GBK 编码失败崩溃问题；在 Cookie 导入器中新增通用 `cookies.json` 的扫描和解析，提升在 Windows 环境下的运行鲁棒性，并成功在测试阶段运用桌面图片进行物理文件上传验证。
+            </div>
+            <div class="tl-tags">
+              <span>Path-Resilience</span><span>Windows-Unicode</span><span>Cookie-Robustness</span><span>E2E-Image-Upload</span>
+            </div>
+          </div>
         </div>
       </section>
 
