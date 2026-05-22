@@ -84,7 +84,7 @@ def handle_improve(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
 
     # Antigravity LLM Integration for Improver
     try:
-        from ..llm_client import get_llm_config, call_antigravity_llm
+        from ..llm_client import get_llm_config, call_antigravity_llm, LLMBudgetExceededError, LLMClientError
         llm_cfg = get_llm_config(project_root)
         if llm_cfg.get("provider") == "antigravity":
             prompt = (
@@ -108,6 +108,11 @@ def handle_improve(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
             complete_issue(store, iid, resolved=True, note=f"Antigravity Optimization Session: {ai_ret}")
             write_latest_snapshot(store)
             return
+    except LLMBudgetExceededError as e:
+        logger.warning("⚠️ LLM Budget Exceeded for Improver: %s. Releasing issue %s for later retry.", e, iid[:8])
+        complete_issue(store, iid, resolved=False, note=f"LLM Budget Exceeded: {e}. Releasing assignment.")
+        write_latest_snapshot(store)
+        return
     except Exception as e:
         logger.warning("Failed to invoke Antigravity LLM for Improver: %s", e)
 

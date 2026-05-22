@@ -34,6 +34,7 @@ from .logging_util import setup_logger
 from .paths import automation_dir, ensure_layout, load_config
 from .reports import write_latest_snapshot
 from .round_findings import RoundFindings
+from .error_parser import extract_clean_error
 from .round_suggestions import (
     append_suggestions,
     fallback_aligned_suggestion,
@@ -351,7 +352,8 @@ def run_py_compile_regression(
             if proc.returncode == 0:
                 findings.add(f"py_compile_{name}", f"py_compile {name}", "pass", "语法 OK")
             else:
-                err = (proc.stderr or proc.stdout or "")[-800:]
+                raw_err = proc.stderr or proc.stdout or ""
+                err = extract_clean_error(raw_err)
                 findings.add(f"py_compile_{name}", f"py_compile {name}", "fail", err)
                 created += _maybe_add_issue(
                     store,
@@ -652,12 +654,13 @@ def run_legacy_scripts(
             findings.add(f"legacy_{script}", f"遗留脚本 {script}", "pass", output[:80] or "OK")
             logger.info("Legacy script %s: OK (%s)", script, output[:80])
             continue
-        findings.add(f"legacy_{script}", f"遗留脚本 {script}", "fail", output[:200])
+        clean_err = extract_clean_error(output)
+        findings.add(f"legacy_{script}", f"遗留脚本 {script}", "fail", clean_err[:200])
         created += _maybe_add_issue(
             store,
             severity="medium",
             issue_type="test_failure",
-            description=f"Legacy test script `{script}` failed or could not run.\n\n```\n{output[-1500:]}\n```",
+            description=f"Legacy test script `{script}` failed or could not run.\n\n```\n{clean_err}\n```",
             paths=[script],
             metadata={"script": script},
         )

@@ -52,99 +52,36 @@ _FACT_TYPES = frozenset(
 )
 
 
-def evaluate_alignment_score(issue: dict[str, Any]) -> tuple[int, str, bool]:
-    """Deterministic, goal-aligned Scorer that evaluates issue descriptions.
-
-    Uses project North Star rules from goal_context.py to verify alignment
-    and calculates scoring by severity level. If LLM provider is antigravity,
-    queries the local model.
-    """
-    severity = str(issue.get("severity", "low")).lower()
-    description = str(issue.get("description", ""))
-    
-    base_scores = {
-        "critical": 95,
-        "high": 85,
-        "medium": 70,
-        "low": 60
-    }
-    base_score = base_scores.get(severity, 60)
-    
-    from .goal_context import goal_rejection_reason, goal_summary_for_prompt
-    from pathlib import Path
-    
-    rejection = goal_rejection_reason(description, strict=False)
-    if rejection:
-        score = max(30, base_score - 40)
-        rationale = f"Deterministic Scorer: potential goal misalignment ({rejection}). Evaluated score: {score}"
-        qualified = False
-        return score, rationale, qualified
-
-    # Antigravity LLM evaluation integration
-    project_root = Path(__file__).resolve().parent.parent
-    try:
-        from .llm_client import get_llm_config, call_antigravity_llm
-        llm_cfg = get_llm_config(project_root)
-        if llm_cfg.get("provider") == "antigravity":
-            goal_summary = goal_summary_for_prompt()
-            prompt = (
-                f"[Qualoop Scorer Agent - North Star Alignment Evaluation]\n"
-                f"Project North Star and Goals:\n{goal_summary}\n\n"
-                f"We are evaluating a system issue/suggestion to determine if resolving it promotes or is aligned with the North Star.\n"
-                f"Issue Title/Type: {issue.get('type')}\n"
-                f"Severity: {severity}\n"
-                f"Description:\n{description}\n\n"
-                f"Tasks:\n"
-                f"1. Check if the issue aligns with the North Star (value_qualified is True if yes, False if not).\n"
-                f"2. Assign an alignment score from 0 to 100 based on severity and direct relevance to user experience. Critical issues aligned should score 90-100, High: 80-89, Medium: 70-79, Low: 60-69. Misaligned issues should score < 60.\n"
-                f"3. Provide a brief Chinese explanation for the decision.\n\n"
-                f"Please review the alignment, and start a prompt inside the IDE."
-            )
-            model = llm_cfg.get("model", "flash")
-            ai_ret = call_antigravity_llm(project_root, prompt, model=model)
-            score = base_score
-            rationale = f"Antigravity Scorer: {ai_ret}. Severity {severity} -> base score {score}."
-            qualified = True
-            return score, rationale, qualified
-    except Exception as e:
-        pass
-    
-    score = base_score
-    rationale = f"Deterministic Scorer: alignment verified. Severity {severity} -> base score {score}."
-    qualified = True
-    return score, rationale, qualified
-
-
+from .scorer import QualoopScorer
 
 def _auto_score_fact_issues(store: IssueStore, logger) -> int:
-    """Deterministic Scorer: mark fact-type issues as value_qualified based on North Star rules.
+    """Uses the unified QualoopScorer to score open fact-type issues.
 
     Per METHODOLOGY §1.5 every opinion should be Scorer-rated. Fact-type detections
     (health, api, static, performance, test_failure, verification, browser_e2e)
-    are scored dynamically based on their severity and their alignment to the
-    North Star.
+    are scored dynamically based on their metrics.
     """
     updated = 0
+    scorer = QualoopScorer()
     for issue in store.list_issues(status_filter=STATUSES_OPEN):
         if issue.get("value_qualified") is True:
             continue
         if issue.get("type") not in _FACT_TYPES:
             continue
         
-        score, rationale, qualified = evaluate_alignment_score(issue)
+        scorer.evaluate_and_score(issue, round_id="scheduler-autoscore")
+        
+        # Save Scorer outcomes
         store.update(
             issue["id"],
-            value_score=score,
-            value_score_rationale=rationale,
-            value_qualified=qualified,
-            metadata={
-                **(issue.get("metadata") or {}),
-                "scored_by": "scheduler.auto_score",
-            },
+            value_score=issue.get("metadata", {}).get("value_score"),
+            value_score_rationale=issue.get("metadata", {}).get("value_score_rationale"),
+            value_qualified=issue.get("metadata", {}).get("value_qualified"),
+            metadata=issue.get("metadata"),
         )
         updated += 1
     if updated:
-        logger.info("Auto-scored %d fact-type issues via deterministic scorer", updated)
+        logger.info("Auto-scored %d fact-type issues via unified scorer", updated)
     return updated
 
 

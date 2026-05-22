@@ -238,7 +238,7 @@ def handle_fix(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
 
     # Antigravity LLM Integration for Fixer
     try:
-        from ..llm_client import get_llm_config, call_antigravity_llm
+        from ..llm_client import get_llm_config, call_antigravity_llm, LLMBudgetExceededError, LLMClientError
         llm_cfg = get_llm_config(project_root)
         if llm_cfg.get("provider") == "antigravity":
             prompt = (
@@ -258,6 +258,10 @@ def handle_fix(issue: dict, store: IssueStore, cfg: dict, logger) -> None:
                     iid,
                     description=curr_desc + f"\n\n### 🛡️ Antigravity AI 修复会话：\n{ai_ret}"
                 )
+    except LLMBudgetExceededError as e:
+        logger.warning("⚠️ LLM Budget Exceeded for Fixer: %s. Releasing issue %s for later retry.", e, iid[:8])
+        complete_issue(store, iid, resolved=False, note=f"LLM Budget Exceeded: {e}. Releasing assignment.")
+        return
     except Exception as e:
         logger.warning("Failed to invoke Antigravity LLM for Fixer: %s", e)
 
