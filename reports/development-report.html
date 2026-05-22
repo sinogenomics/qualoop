@@ -1032,6 +1032,33 @@ e:/path/to/qualoop
                   <span class="status-badge status-no">未推送</span>
                 </td>
               </tr>
+              <tr>
+                <td>
+                  <span class="stage-num">阶段 15</span>
+                  <span class="td-time">2026-05-23 07:44</span>
+                </td>
+                <td>
+                  <strong>新增框架自升级校验规则与动态目标覆盖率审计</strong>
+                  <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
+                    在 <code>tester.py</code> 中新增 <code>check_qualoop_self_upgrade</code> 规则校验函数，利用 Git 动态监测 Qualoop 框架代码变更与 <code>development-report.html</code> 升级记录的同步情况，强制规范版本记录维护；同时在 <code>AGENTS.md</code> 中补充了该自我升级与维护规则，形成制度化约束。
+                  </div>
+                  <div class="table-tags">
+                    <span>Self-Upgrade-Rule</span><span>Compliance</span><span>tester.py</span><span>AGENTS.md</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="sev-badge sev-medium">中 (60/100)</span>
+                </td>
+                <td>
+                  Qualoop 自身的迭代记录和规范无法保证，容易由于人为疏忽遗漏登记升级信息，导致体系不可观测。
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已解决</span>
+                </td>
+                <td>
+                  <span class="status-badge status-no">未推送</span>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

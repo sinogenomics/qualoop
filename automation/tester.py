@@ -575,6 +575,78 @@ def api_contract_check(
     return created
 
 
+def check_qualoop_self_upgrade(
+    project_root: Path, store: IssueStore, findings: RoundFindings, logger
+) -> int:
+    """Ensure Qualoop upgrades are documented in reports/development-report.html.
+    This rule is enforced by checking if any automation python code is modified
+    without a corresponding modification to development-report.html.
+    """
+    created = 0
+    report_file = project_root / "reports" / "development-report.html"
+    
+    # Only enforce if we are in the Qualoop source repository (or development-report.html exists)
+    if not report_file.is_file():
+        return 0
+
+    try:
+        # Run git status to see modified files
+        proc = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=str(project_root),
+            capture_output=True,
+            text=True,
+            timeout=10,
+            encoding="utf-8",
+            errors="replace"
+        )
+        if proc.returncode != 0:
+            return 0
+            
+        modified_files = []
+        report_modified = False
+        for line in proc.stdout.splitlines():
+            # git status --porcelain output lines start with status code (e.g. ' M ', '?? ', 'A  ')
+            parts = line.strip().split(maxsplit=1)
+            if len(parts) < 2:
+                continue
+            filename = parts[1]
+            if "development-report.html" in filename:
+                report_modified = True
+            elif filename.startswith("automation/") and filename.endswith(".py"):
+                modified_files.append(filename)
+
+        if modified_files and not report_modified:
+            findings.add(
+                "qualoop_upgrade_record",
+                "Qualoop 自我升级记录校验",
+                "fail",
+                f"修改了组件 {', '.join(modified_files)} 但未更新 development-report.html",
+            )
+            created += _maybe_add_issue(
+                store,
+                severity="medium",
+                issue_type="compliance",
+                description=(
+                    "Qualoop self-upgrade rule violation: Qualoop framework code has been modified "
+                    f"({', '.join(modified_files)}), but no corresponding update was recorded in "
+                    "`reports/development-report.html`. Every Qualoop upgrade must be documented."
+                ),
+                paths=["reports/development-report.html"] + modified_files,
+            )
+        else:
+            findings.add(
+                "qualoop_upgrade_record",
+                "Qualoop 自我升级记录校验",
+                "pass",
+                "未修改框架代码，或已在 development-report.html 中更新记录",
+            )
+    except Exception as e:
+        logger.warning("Failed to run Qualoop self-upgrade check: %s", e)
+        
+    return created
+
+
 def check_auth_and_create_notebook(
     cfg: dict,
     store: IssueStore,
@@ -779,6 +851,7 @@ def run_once(
         created += run_py_compile_regression(project_root, store, findings, logger)
         created += run_legacy_scripts(cfg, project_root, store, findings, logger)
         created += api_contract_check(project_root, store, findings, cfg, logger)
+        created += check_qualoop_self_upgrade(project_root, store, findings, logger)
 
     if _depth_at_least(depth, "deep"):
         created += check_auth_and_create_notebook(
