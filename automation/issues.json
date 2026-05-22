@@ -5,7 +5,7 @@
       "severity": "high",
       "type": "static",
       "description": "Broken relative markdown link './tools/qualoop/AI-START-HERE.md' inside AGENTS.md",
-      "status": "open",
+      "status": "resolved",
       "assigned_executor": null,
       "paths": [
         "AGENTS.md"
@@ -18,17 +18,18 @@
         "value_score_rationale": "Fixes structural documentation broken links, direct support for readability.",
         "value_qualified": true,
         "scored_at": "2026-05-21T03:14:08.705221Z",
-        "scorer_round_id": "pass_20260521_031407"
+        "scorer_round_id": "pass_20260521_031407",
+        "resolved_by": "tester_auto"
       },
       "created_at": "2026-05-21T02:58:01.752783Z",
-      "updated_at": "2026-05-21T03:14:08.705176Z"
+      "updated_at": "2026-05-22T16:10:08+00:00"
     },
     {
       "id": "116d178c-143f-480c-82b9-257f193790c6",
       "severity": "high",
       "type": "static",
       "description": "Broken relative markdown link './tools/qualoop/AI-START-HERE.md' inside AGENTS.md",
-      "status": "open",
+      "status": "resolved",
       "assigned_executor": null,
       "paths": [
         "templates/AGENTS.md"
@@ -41,17 +42,18 @@
         "value_score_rationale": "Fixes structural documentation broken links, direct support for readability.",
         "value_qualified": true,
         "scored_at": "2026-05-21T03:14:08.705246Z",
-        "scorer_round_id": "pass_20260521_031407"
+        "scorer_round_id": "pass_20260521_031407",
+        "resolved_by": "tester_auto"
       },
       "created_at": "2026-05-21T02:58:01.752851Z",
-      "updated_at": "2026-05-21T03:14:08.705243Z"
+      "updated_at": "2026-05-22T16:10:08+00:00"
     },
     {
       "id": "67b9a970-415a-47f7-8919-584d1eb8d232",
       "severity": "high",
       "type": "static",
       "description": "North Star placeholder remains unconfigured in AGENTS.md",
-      "status": "open",
+      "status": "resolved",
       "assigned_executor": null,
       "paths": [
         "AGENTS.md"
@@ -64,10 +66,11 @@
         "value_score_rationale": "Resolves standard static validation rules.",
         "value_qualified": true,
         "scored_at": "2026-05-21T03:14:08.705256Z",
-        "scorer_round_id": "pass_20260521_031407"
+        "scorer_round_id": "pass_20260521_031407",
+        "resolved_by": "tester_auto"
       },
       "created_at": "2026-05-21T02:58:01.752868Z",
-      "updated_at": "2026-05-21T03:14:08.705254Z"
+      "updated_at": "2026-05-22T16:10:08+00:00"
     },
     {
       "id": "78847fa0-cece-4694-9465-8a4ae11b7a0c",
@@ -218,6 +221,46 @@
       },
       "created_at": "2026-05-21T03:13:44.585468Z",
       "updated_at": "2026-05-21T03:14:02.468678Z"
+    },
+    {
+      "id": "ced73a68-6705-4695-b43f-8c6187225023",
+      "severity": "high",
+      "type": "health",
+      "description": "Frontend not reachable at http://localhost:8080: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [],
+      "fingerprint": "4f6b93e3daf12d14",
+      "metadata": {
+        "url": "http://localhost:8080",
+        "value_score": 80,
+        "value_score_rationale": "Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:21:24.912272Z",
+        "scorer_round_id": "pass_20260522_162116"
+      },
+      "created_at": "2026-05-22T16:10:08+00:00",
+      "updated_at": "2026-05-22T16:21:24+00:00"
+    },
+    {
+      "id": "e87e2e3e-eebd-41a0-b0de-81138efbaf75",
+      "severity": "high",
+      "type": "health",
+      "description": "Backend health check failed (http://localhost:5000/api/health?notebooklm=light): <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>",
+      "status": "open",
+      "assigned_executor": null,
+      "paths": [],
+      "fingerprint": "1b0e08fe690191ba",
+      "metadata": {
+        "url": "http://localhost:5000/api/health?notebooklm=light",
+        "value_score": 80,
+        "value_score_rationale": "Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.",
+        "value_qualified": true,
+        "scored_at": "2026-05-22T16:21:24.924406Z",
+        "scorer_round_id": "pass_20260522_162116"
+      },
+      "created_at": "2026-05-22T16:10:08+00:00",
+      "updated_at": "2026-05-22T16:21:24+00:00"
     }
   ],
   "meta": {

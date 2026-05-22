@@ -64,7 +64,7 @@ def _auto_score_fact_issues(store: IssueStore, logger) -> int:
     updated = 0
     scorer = QualoopScorer()
     for issue in store.list_issues(status_filter=STATUSES_OPEN):
-        if issue.get("value_qualified") is True:
+        if issue.get("metadata", {}).get("value_qualified") is True:
             continue
         if issue.get("type") not in _FACT_TYPES:
             continue
@@ -74,9 +74,6 @@ def _auto_score_fact_issues(store: IssueStore, logger) -> int:
         # Save Scorer outcomes
         store.update(
             issue["id"],
-            value_score=issue.get("metadata", {}).get("value_score"),
-            value_score_rationale=issue.get("metadata", {}).get("value_score_rationale"),
-            value_qualified=issue.get("metadata", {}).get("value_qualified"),
             metadata=issue.get("metadata"),
         )
         updated += 1
@@ -125,7 +122,7 @@ def run_once(cfg: dict | None = None) -> dict:
             continue
         if issue.get("assigned_executor"):
             continue
-        if require_vq and issue.get("value_qualified") is not True:
+        if require_vq and issue.get("metadata", {}).get("value_qualified") is not True:
             continue
 
         issue_type = issue.get("type", "static")

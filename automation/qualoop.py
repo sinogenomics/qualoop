@@ -75,6 +75,7 @@ def cmd_check(args):
             metadata=cand["metadata"]
         )
         scorer.evaluate_and_score(issue, round_id)
+        store.update(issue["id"], metadata=issue.get("metadata"))
         session_issues.append(issue)
 
     # Count qualified issues in the当轮 session
@@ -106,6 +107,7 @@ def cmd_check(args):
                 metadata=cand["metadata"]
             )
             scorer.evaluate_and_score(issue, round_id)
+            store.update(issue["id"], metadata=issue.get("metadata"))
             session_issues.append(issue)
 
         qualified_count = sum(1 for issue in session_issues if issue.get("metadata", {}).get("value_qualified", False))

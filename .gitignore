@@ -16,3 +16,16 @@ Thumbs.db
 .env.*
 *.pem
 credentials.json
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+
+# Local reference codebases
+/reference_systems/
+/reference_systems_phase2/
+
+# Qualoop locks and reports
+/automation/locks/
+/automation/reports/round_findings.jsonl
+
