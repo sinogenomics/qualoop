@@ -388,7 +388,7 @@
         <div class="meta-row">
           <span class="pill"><strong>类型</strong> 方法论文档仓</span>
           <span class="pill"><strong>来源</strong> LessonVerse 实践抽象</span>
-          <span class="pill"><strong>报告日期</strong> 2026-05-19</span>
+          <span class="pill"><strong>报告日期</strong> 2026-05-23</span>
           <span class="pill"><strong>打开方式</strong> 浏览器直接打开本 HTML</span>
         </div>
       </header>
@@ -543,7 +543,7 @@ e:/path/to/qualoop
             </div>
           </div>
 
-          <div class="tl-item current">
+          <div class="tl-item done">
             <div class="tl-date">阶段 5 · 呈现</div>
             <div class="tl-title">网页版开发过程报告（本页）</div>
             <div class="tl-body">
@@ -554,8 +554,41 @@ e:/path/to/qualoop
             </div>
           </div>
 
-          <div class="tl-item">
-            <div class="tl-date">阶段 6 · 规划</div>
+          <div class="tl-item done">
+            <div class="tl-date">阶段 6 · 升级</div>
+            <div class="tl-title">L3 级成熟度适配、守护进程保活与多角色大模型驱动</div>
+            <div class="tl-body">
+              解决 Windows 系统下跨平台路径锁与租约适配缺陷（QL-001至QL-007）；升级到 L3 成熟度时支持在终端后台自动拉起 Guardian 守护进程（<code>start.bat</code>）以实现 24 小时常驻运行；全面接入本地 Antigravity 大模型驱动五角色，大幅提升自动化诊断与修复决策质量。
+            </div>
+            <div class="tl-tags">
+              <span>L3-Compliance</span><span>Guardian</span><span>Antigravity-LLM</span><span>start.bat</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 7 · 升级</div>
+            <div class="tl-title">模块化评分标准、API 额度预算控制与人机协同告警</div>
+            <div class="tl-body">
+              引入多维模块化评分标准（严重性、对齐度、清晰度、影响度、可验证性）；加入 SWE-agent 风格的 LLM 调用额度与 Token 预算限制类（<code>Budget Limit Exception</code>），防止 Tester 陷入对话风暴；支持降级策略，在预算耗尽或置信度不足时输出 <code>requires_human</code> 告警。
+            </div>
+            <div class="tl-tags">
+              <span>Modular-Scoring</span><span>SWE-Agent-Budget</span><span>Token-Limit</span><span>requires_human</span>
+            </div>
+          </div>
+
+          <div class="tl-item done">
+            <div class="tl-date">阶段 8 · 调试</div>
+            <div class="tl-title">核心缺陷修复与调度链路元数据对齐 (Critical Debug & Stability)</div>
+            <div class="tl-body">
+              彻底解决 <code>qualoop check</code> 后 Scorer 评分未即时持久化到 issues.json 的缺陷，确保每轮检查结果的即时落库；修正 Scheduler 路径过滤时对 <code>value_qualified</code> 的嵌套读取路径（从 <code>metadata</code> 中正确解包），消除 L3 自动分派和执行阶段的安全隐患。
+            </div>
+            <div class="tl-tags">
+              <span>Bug-Fix</span><span>State-Persistence</span><span>Scheduler-Path-Lock</span><span>Value-Qualified</span>
+            </div>
+          </div>
+
+          <div class="tl-item current">
+            <div class="tl-date">阶段 9 · 规划</div>
             <div class="tl-title">参考实现与 CI 联邦（未在本仓交付）</div>
             <div class="tl-body">
               与 GitHub Issues 双向同步、多项目 Guardian 联邦、LLM 桥接 improver、审批闸门等——见 README「未来优化方向」。
