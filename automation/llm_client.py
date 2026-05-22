@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 """Antigravity LLM Client for Qualoop agentic loops."""
 from __future__ import annotations
 
 import json
 import logging
 import os
+import re
+import shlex
 import subprocess
 import sys
 import time
@@ -13,6 +16,35 @@ from pathlib import Path
 logger = logging.getLogger("automation.llm_client")
 
 DEFAULT_CLI_PATH = r"C:\Users\TQT\.gemini\antigravity\bin\agentapi.bat"
+
+
+def resolve_windows_bat_command(cli_path: str) -> list[str]:
+    """Under Windows, if cli_path is a .bat file, parse it to find the actual executable
+    to bypass cmd.exe multiline argument truncation.
+    """
+    if sys.platform != "win32" or not cli_path.lower().endswith(".bat"):
+        return [cli_path]
+    try:
+        content = Path(cli_path).read_text(encoding="utf-8", errors="replace")
+        for line in content.splitlines():
+            line = line.strip()
+            if not line or line.startswith("@") or line.lower().startswith("rem") or line.lower().startswith("echo"):
+                continue
+            match = re.match(r'^"([^"]+)"\s*(.*)$', line)
+            if not match:
+                match = re.match(r'^([^\s]+)\s*(.*)$', line)
+            if match:
+                exe = match.group(1)
+                args_str = match.group(2)
+                args_str = args_str.replace("%*", "").strip()
+                try:
+                    args = shlex.split(args_str)
+                except Exception:
+                    args = args_str.split()
+                return [exe] + args
+    except Exception as e:
+        logger.warning("Failed to parse batch file %s: %s", cli_path, e)
+    return [cli_path]
 
 
 class LLMClientError(Exception):
@@ -98,12 +130,28 @@ def call_antigravity_llm(project_root: Path, prompt: str, model: str = "flash") 
         else:
             raise LLMClientError(f"Antigravity CLI wrapper not found at {cli_path}")
 
-    cmd = [
-        "cmd.exe", "/c", cli_path,
-        "new-conversation",
-        f"--model={model}",
-        prompt
-    ]
+    if sys.platform == "win32":
+        if cli_path.lower().endswith(".bat"):
+            base_cmd = resolve_windows_bat_command(cli_path)
+            cmd = base_cmd + [
+                "new-conversation",
+                f"--model={model}",
+                prompt
+            ]
+        else:
+            cmd = [
+                cli_path,
+                "new-conversation",
+                f"--model={model}",
+                prompt
+            ]
+    else:
+        cmd = [
+            cli_path,
+            "new-conversation",
+            f"--model={model}",
+            prompt
+        ]
 
     try:
         logger.info("Executing Antigravity CLI call...")

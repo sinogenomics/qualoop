@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """JSON issue store with dedupe and single-writer locking."""
 from __future__ import annotations
 
@@ -100,13 +101,13 @@ class IssueStore:
             self._write_unlocked(data)
             return issue
 
-    def update(self, issue_id: str, **fitlds: Any) -> dict[str, Any] | None:
+    def update(self, issue_id: str, **fields: Any) -> dict[str, Any] | None:
         with store_lock():
             data = self._read_unlocked()
             for issue in data.get("issues", []):
                 if issue.get("id") != issue_id:
                     continue
-                for key, value in fitlds.items():
+                for key, value in fields.items():
                     if key in ("id", "fingerprint", "created_at"):
                         continue
                     issue[key] = value

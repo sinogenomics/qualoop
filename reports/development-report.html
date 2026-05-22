@@ -587,8 +587,19 @@ e:/path/to/qualoop
             </div>
           </div>
 
+          <div class="tl-item done">
+            <div class="tl-date">阶段 9 · 调试与优化</div>
+            <div class="tl-title">Tester 智能诊断恢复与 Windows 编码兼容性优化 (Tester LLM Diagnostics & Windows Encoding Fix)</div>
+            <div class="tl-body">
+              完成 Qualoop Tester Agent 的全面诊断与加固：安全恢复新问题发现时的 LLM 智能分析能力，并通过全局 <code>_llm_called</code> 状态锁进行单次调用节流，防止大批量故障检测时引发大模型对话风暴；同时，在 Windows 环境下的遗留脚本子进程调用中注入 UTF-8 环境变量，规避编码解析错误引发的崩溃。
+            </div>
+            <div class="tl-tags">
+              <span>Diagnostics</span><span>Global-Throttle</span><span>Windows-Encoding</span><span>Stability</span>
+            </div>
+          </div>
+
           <div class="tl-item current">
-            <div class="tl-date">阶段 9 · 规划</div>
+            <div class="tl-date">阶段 10 · 规划</div>
             <div class="tl-title">参考实现与 CI 联邦（未在本仓交付）</div>
             <div class="tl-body">
               与 GitHub Issues 双向同步、多项目 Guardian 联邦、LLM 桥接 improver、审批闸门等——见 README「未来优化方向」。

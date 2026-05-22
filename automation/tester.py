@@ -151,6 +151,46 @@ def _post_json(url: str, payload: dict, timeout: float = 30.0) -> tuple[int, str
 
 
 def _maybe_add_issue(store: IssueStore, **kwargs) -> int:
+    """Add an issue to the store, optionally augmenting with LLM diagnostics.
+
+    To avoid spawning a new conversation for every issue (which clutters the UI),
+    we limit LLM calls to a single invocation per tester run. Subsequent issues
+    will be recorded without additional LLM diagnostics unless the configuration
+    explicitly enables per‑issue diagnostics.
+    """
+    project_root = Path(__file__).resolve().parent.parent
+    # Global guard to ensure we call the LLM at most once per run.
+    global _llm_called
+    try:
+        from .llm_client import get_llm_config, call_antigravity_llm
+        llm_cfg = get_llm_config(project_root)
+        # Only invoke the LLM if it hasn't been called yet this run and the
+        # provider is Antigravity (default). Future enhancements could make this
+        # configurable via automation/config.json.
+        if not globals().get("_llm_called", False) and llm_cfg.get("provider") == "antigravity":
+            desc = kwargs.get("description", "")
+            itype = kwargs.get("issue_type", "unknown")
+            severity = kwargs.get("severity", "medium")
+            paths = kwargs.get("paths", [])
+            prompt = (
+                f"[Qualoop Tester Agent Diagnostic]\n"
+                f"A local probe has detected a defect in the system.\n"
+                f"Issue Type: {itype}\n"
+                f"Severity: {severity}\n"
+                f"Paths involved: {paths}\n"
+                f"Description:\n{desc}\n\n"
+                f"Please diagnose the potential root cause, evaluate how it affects our North Star, and recommend a clear, actionable fix strategy. Keep your response highly concise and professional in Chinese."
+            )
+            model = llm_cfg.get("model", "flash")
+            ai_ret = call_antigravity_llm(project_root, prompt, model=model)
+            kwargs["description"] = desc + f"\n\n### 🛡️ Antigravity AI 智能诊断：\n{ai_ret}"
+            # Mark that we've called the LLM for this run.
+            _llm_called = True
+    except Exception:
+        # Silently ignore any errors – issue creation should not fail because of
+        # diagnostics.
+        pass
+
     issue = store.add(**kwargs)
     return 1 if issue else 0
 
@@ -622,6 +662,10 @@ def run_legacy_script(project_root: Path, script: str, timeout: int = 120) -> tu
     if not path.is_file():
         return True, "missing (skipped)"
     try:
+        import os
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["PYTHONUTF8"] = "1"
         proc = subprocess.run(
             [sys.executable, str(path)],
             cwd=str(project_root),
@@ -630,6 +674,7 @@ def run_legacy_script(project_root: Path, script: str, timeout: int = 120) -> tu
             timeout=timeout,
             encoding="utf-8",
             errors="replace",
+            env=env,
         )
         out = (proc.stdout or "") + (proc.stderr or "")
         if proc.returncode == 0:
@@ -674,6 +719,8 @@ def run_once(
     cfg = cfg or load_config()
     layout = ensure_layout(cfg)
     logger = setup_logger("tester", cfg)
+    global _llm_called
+    _llm_called = False
     project_root: Path = cfg["_project_root"]
     if store is None:
         store = IssueStore()
