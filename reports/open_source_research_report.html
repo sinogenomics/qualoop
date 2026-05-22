@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Qualoop · 开源产品深度调研报告</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #111827;
+      --surface-glass: rgba(17, 24, 39, 0.7);
+      --surface2: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-dim: #1d4ed8;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --ok: #10b981;
+      --ok-glow: rgba(16, 185, 129, 0.15);
+      --warn: #f59e0b;
+      --warn-glow: rgba(245, 158, 11, 0.15);
+      --danger: #ef4444;
+      --border: #374151;
+      --font: "Outfit", "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "Fira Code", "Cascadia Code", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--accent); text-decoration: none; transition: color 0.2s ease; }
+    a:hover { color: #60a5fa; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.side { display: none; }
+    }
+
+    /* Navigation Sidebar */
+    nav.side {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 2rem 1.25rem;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    nav.side .brand {
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      letter-spacing: -0.03em;
+    }
+    nav.side .brand span {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    nav.side .sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      margin-bottom: 2rem;
+    }
+    nav.side ul { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+    nav.side a.nav-link {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    nav.side a.nav-link:hover, nav.side a.nav-link.active {
+      background: var(--surface2);
+      color: var(--text);
+      transform: translateX(3px);
+    }
+    nav.side .footer-note {
+      font-size: 0.7rem;
+      color: #4b5563;
+      border-top: 1px solid #1f2937;
+      padding-top: 1rem;
+    }
+
+    /* Main Container */
+    main { padding: 3rem 4rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+    @media (max-width: 768px) {
+      main { padding: 2rem 1.5rem; }
+    }
+
+    /* Hero Section */
+    header.hero {
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+    header.hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(to right, #ffffff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header.hero p.subtitle {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 45rem;
+      margin-bottom: 1.5rem;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .pill {
+      font-size: 0.78rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .pill strong { color: var(--text); }
+
+    /* Content Sections */
+    section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    section h2::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 1.2rem;
+      background: var(--accent);
+      border-radius: 99px;
+    }
+    p { margin-bottom: 1rem; color: var(--muted); }
+
+    /* Product Cards */
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+    .product-card {
+      background: var(--surface-glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .product-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 25px var(--accent-glow);
+    }
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+    }
+    .product-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .product-meta {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-family: var(--mono);
+      background: var(--accent-glow);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .feature-list {
+      margin-top: 1rem;
+      list-style: none;
+    }
+    .feature-list li {
+      margin-bottom: 0.75rem;
+      padding-left: 1.5rem;
+      position: relative;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+    .feature-list li strong { color: var(--text); }
+    .feature-list li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* Comparison Matrix Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 1.5rem;
+      background: var(--surface);
+    }
+    table.matrix {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+    table.matrix th, table.matrix td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    table.matrix th {
+      background: var(--surface2);
+      color: var(--text);
+      font-weight: 600;
+    }
+    table.matrix tr:last-child td { border-bottom: none; }
+    table.matrix tr:hover td { background: var(--surface2); }
+    table.matrix td strong { color: var(--text); }
+
+    /* Recommendations / Upgrade Cards */
+    .rec-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .rec-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .rec-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+    .rec-card.rec-high::before { background: var(--ok); }
+    .rec-card.rec-med::before { background: var(--accent); }
+    .rec-card.rec-warn::before { background: var(--warn); }
+    
+    .rec-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .rec-high .rec-badge { background: var(--ok-glow); color: var(--ok); }
+    .rec-med .rec-badge { background: var(--accent-glow); color: var(--accent); }
+    .rec-warn .rec-badge { background: var(--warn-glow); color: var(--warn); }
+
+    .rec-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .rec-source {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      font-family: var(--mono);
+    }
+    .rec-body { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .rec-action {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      border: 1px dashed var(--border);
+      font-family: var(--mono);
+      color: var(--text);
+    }
+
+    /* Mermaid Section container */
+    .mermaid-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    /* Mermaid style rendering workaround using CSS */
+    .mermaid-flow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+    .m-node {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .m-node.highlight {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+    .m-arrow {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar Navigation -->
+    <nav class="side" aria-label="章节导航">
+      <div>
+        <div class="brand">Qualoop <span>Research</span></div>
+        <div class="sub">开源产品深度调研报告</div>
+        <ul>
+          <li><a href="#overview" class="nav-link">报告概览</a></li>
+          <li><a href="#swe-agent" class="nav-link">1. SWE-agent 分析</a></li>
+          <li><a href="#aider" class="nav-link">2. Aider 分析</a></li>
+          <li><a href="#mentat" class="nav-link">3. Mentat 分析</a></li>
+          <li><a href="#devin" class="nav-link">4. Devin/AutoGPT 分析</a></li>
+          <li><a href="#metagpt" class="nav-link">5. MetaGPT 分析</a></li>
+          <li><a href="#comparison" class="nav-link">📊 矩阵对比</a></li>
+          <li><a href="#recommendations" class="nav-link">💡 升级建议书</a></li>
+        </ul>
+      </div>
+      <div class="footer-note">
+        Qualoop 自动化研发小组 · 定时巡航调研报告
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Hero -->
+      <header class="hero" id="overview">
+        <h1>Qualoop 相关开源产品深度调研报告</h1>
+        <p class="subtitle">
+          本报告旨在以严谨、深入、科学、客观的角度，梳理并剖析当前主流的智能体代码库与质量闭环工具，总结提炼出其对 Qualoop 系统底层架构的升级价值。
+        </p>
+        <div class="meta-row">
+          <span class="pill"><strong>状态</strong> 调研归档（无代码修改）</span>
+          <span class="pill"><strong>巡航频率</strong> 每半小时</span>
+          <span class="pill"><strong>更新时间</strong> 2026-05-23 07:34</span>
+        </div>
+      </header>
+
+      <!-- SWE-agent -->
+      <section id="swe-agent">
+        <h2>1. SWE-agent：人机接口重构与沙盒运行时</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">SWE-agent (普林斯顿 NLP 实验室)</span>
+              <span class="product-meta">ACI & Sandbox</span>
+            </div>
+            <p>
+              SWE-agent 在软件工程基准测试中表现卓越，其核心学术贡献在于提出了 <strong>ACI（Agent-Computer Interface，智能体-计算机接口）</strong>。
+            </p>
+            <ul class="feature-list">
+              <li><strong>ACI (智能体专用 Shell)</strong>：摒弃传统的原始系统 Shell 输出，开发了专用受限 Shell。例如通过 <code>find_by_name</code>, <code>view_line_range</code>, <code>edit_line</code> 等结构化指令精确控制输入输出，抹平操作系统间输出异构并过滤冗余系统日志，极大地保护了 LLM 的上下文窗口。</li>
+              <li><strong>内建指令防错拦截</strong>：在 Agent 编写非法或毁灭性命令时，ACI 拦截器直接拦截并返回格式化错误信息以提示 Agent 自行纠正，防止单一命令行故障导致整个链条崩溃。</li>
+              <li><strong>SWE-ReX 沙盒化执行环境</strong>：通过独立的 Docker / AWS 等虚拟容器，保证执行的每一次代码修改和单元测试都在物理隔离的环境中进行，消除系统副作用。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Aider -->
+      <section id="aider">
+        <h2>2. Aider：符号地图分析与双模型协同</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Aider (最具生产力的编码协同智能体)</span>
+              <span class="product-meta">Repo-Map & Dual-Model</span>
+            </div>
+            <p>
+              Aider 解决了大型复杂项目下，AI 助手面临的代码依赖感知与 Token 浪费问题。
+            </p>
+            <ul class="feature-list">
+              <li><strong>Tree-sitter 仓库地图 (Repository Map)</strong>：通过 Tree-sitter 词法解析器，提取出项目中所有的类定义、函数签名和外部依赖，建立有向关系图，计算 PageRank 权重并精简为 1024 Token 级的小地图作为提示词，帮助大模型以最低开销感知整个代码树。</li>
+              <li><strong>Architect / Editor 双模型架构</strong>：逻辑层与执行层剥离。强推理高算力大模型（如 Claude 3.5 Sonnet / o1）作为 <strong>Architect（架构师）</strong> 生成方案与 Diff 意图；而快速响应、对格式控制极佳的模型（如 DeepSeek）作为 <strong>Editor（编辑器）</strong> 负责具体的多文件 Diff 落库。</li>
+              <li><strong>版本控制自动防灾机制</strong>：在每次代码写入前自动创建 Git Savepoint（临时提交），并在检测到错误时支持一键 Rollback 还原，保证代码库始终处于健康状态。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mentat -->
+      <section id="mentat">
+        <h2>3. Mentat：精细化增量代码块修改与语法校准</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Mentat (终端多文件代码编写器)</span>
+              <span class="product-meta">Block Parser & AST Validate</span>
+            </div>
+            <p>
+              Mentat 专注于提高多文件联合重构时的写入精度。
+            </p>
+            <ul class="feature-list">
+              <li><strong>增量块级修改 (Block Edit Parser)</strong>：摒弃生成全量文件或者生成不稳定的 Patch 模式，采用模型输出定位行的代码块格式。Mentat 解析器将其直接与物理文件精确对齐并完成增量替换，最大程度规避了生成中断和 Token 耗尽问题。</li>
+              <li><strong>AST 语法结构感知</strong>：在补丁落库后，实时构建 Abstract Syntax Tree（AST，抽象语法树），核对括号闭合与缩进对齐，防止应用修改后导致文件根本无法通过基础编译。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Devin -->
+      <section id="devin">
+        <h2>4. Devin / AutoGPT：规划状态机与动态重规划</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Devin & AutoGPT (完全自主软件工程 Agent)</span>
+              <span class="product-meta">ReAct & Re-planning</span>
+            </div>
+            <p>
+              Devin 通过长程任务拆解、环境观测以及动态规划自愈机制，证明了高度自进化改良的可行性。
+            </p>
+            <ul class="feature-list">
+              <li><strong>ReAct 动态规划状态机 (Plan-Execute-Observe-Replan)</strong>：任务拆解后，每一步执行均捕捉环境反馈（Stdout, Stderr, Lint Error）。若发生编译和执行报错，Agent 将报错作为新感知输入，动态进行重规划（Re-planning）与代码自我修正，直至单测通过。</li>
+              <li><strong>双层验证阀门 (Dual-Layer Validation)</strong>：整合系统级别测试、类型检查等物理验证，以及独立审阅 Agent 的语义级 diff 验证。</li>
+              <li><strong>团队本地知识注入 (Rules Library)</strong>：项目根目录下自定义规则文档库，在启动时并入 System Prompt 以强迫 Agent 遵循特定的代码风格。</li>
+            </ul>
+          </div>
+        </section>
+
+      <!-- MetaGPT -->
+      <section id="metagpt">
+        <h2>5. MetaGPT：SOP 标准规范与事件驱动总线</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">MetaGPT (SOP 驱动的多智能体协同框架)</span>
+              <span class="product-meta">SOP & Pub-Sub Event Bus</span>
+            </div>
+            <p>
+              MetaGPT 将成熟的工业级软件开发规范 SOP 融入多智能体系统，避免了多 Agent 并行开发下的失控。
+            </p>
+            <ul class="feature-list">
+              <li><strong>标准化操作规程 (SOP, Standardized Operating Procedures)</strong>：设定明确的分层文档交付物与审核机制。各角色（PM, Architect, QA）只负责 SOP 规定的具体输出，确保中间产物严谨合规。</li>
+              <li><strong>发布-订阅总线架构 (Publish-Subscribe Event Bus)</strong>：各 Agent 并不直接进行端对端的 RPC 调用，而是将自己产出的工件发布到共享内存池（Memory Pool）。订阅了特定工件类型（如订阅 `PRDEvent` 的 Architect）的 Agent 会被事件驱动总线自动唤醒。这实现了高并发的异步事件驱动协作。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comparison Matrix -->
+      <section id="comparison">
+        <h2>📊 跨维度技术矩阵对比分析</h2>
+        <div class="table-container">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>Qualoop (L1-L3)</th>
+                <th>SWE-agent / Aider</th>
+                <th>Mentat / Devin</th>
+                <th>MetaGPT</th>
+                <th>补充性价值与演进方向</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>上下文与规范</strong></td>
+                <td>静态特定文件 + 内存 issues 列表</td>
+                <td>Tree-sitter PageRank 地图</td>
+                <td>动态 Memory 载入 + 本地规则库</td>
+                <td>共享池分发与强 SOP 注入</td>
+                <td><strong>极高</strong>：整合 AST 代码符号地图和本地规则约束。</td>
+              </tr>
+              <tr>
+                <td><strong>执行与沙盒安全</strong></td>
+                <td>本地终端直接运行 (无沙盒)</td>
+                <td>Docker 隔离 / Git 自动回滚</td>
+                <td>完整虚拟机沙盒 (Devin)</td>
+                <td>隔离的可执行测试反馈</td>
+                <td><strong>高</strong>：加入代码变更前的临时分支沙盒及一键回滚机制。</td>
+              </tr>
+              <tr>
+                <td><strong>人机与指令交付</strong></td>
+                <td>CLI 脚本转化运行</td>
+                <td>ACI 高密指令集 / Git 快捷命令</td>
+                <td>交互式 Terminal UI / Web UI</td>
+                <td>SOP 提示语流程控制</td>
+                <td><strong>高</strong>：开发受限的 ACI 中介层，避免直接编写 OS 物理命令行。</td>
+              </tr>
+              <tr>
+                <td><strong>架构与状态协同</strong></td>
+                <td>五/六角色 (严格单线程顺序分派)</td>
+                <td>单 Agent 循环 / 双模型 (Arch-Edit)</td>
+                <td>ReAct 自主状态机动态规划</td>
+                <td>发布-订阅共享内存池 (Pub-Sub)</td>
+                <td><strong>极高</strong>：事件驱动总线解耦角色链；Planner-Editor 分离与互审。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Recommendations -->
+      <section id="recommendations">
+        <h2>💡 Qualoop 核心升级建议书</h2>
+        <div class="rec-list">
+          <!-- Rec 1 -->
+          <div class="rec-card rec-med">
+            <span class="rec-badge">中介层 API 冲突预防</span>
+            <div class="rec-title">建议一：构建 Qualoop-ACI（智能体物理屏蔽）</div>
+            <div class="rec-source">Inspired by SWE-agent ACI</div>
+            <div class="rec-body">
+              为 Tester、Executor 提供专用的 API 封装（例如文件行级修改、安全的单测执行环境），禁止 Agent 在其运行域内拼接和执行未经检验的物理系统 Shell 命令，彻底抹平 Windows、Linux 环境的命令行差异。
+            </div>
+            <div class="rec-action">class ShellExecutor.safe_run(cmd)</div>
+          </div>
+          <!-- Rec 2 -->
+          <div class="rec-card rec-high">
+            <span class="rec-badge">自动修复安全性</span>
+            <div class="rec-title">建议二：Git Savepoints 与沙盒化暂存分支</div>
+            <div class="rec-source">Inspired by Aider / Devin</div>
+            <div class="rec-body">
+              在 L3 Executor 自动修复启动前，强制执行 `git checkout -b qualoop-temp-branch` 并在修复与 Verifier 验证通过后方可 merge。若验证失败则自动回退，确保用户物理工作区的未暂存代码绝不丢失。
+            </div>
+            <div class="rec-action">git checkout -b qualoop-temp-branch</div>
+          </div>
+          <!-- Rec 3 -->
+          <div class="rec-card rec-high">
+            <span class="rec-badge">执行鲁棒性</span>
+            <div class="rec-title">建议三：自纠错重规划（Re-planning Loop）状态机</div>
+            <div class="rec-source">Inspired by Devin ReAct</div>
+            <div class="rec-body">
+              升级 Executor 为状态机模式：若 Verifier 执行单测失败，自动捕捉异常堆栈和错误日志并反哺给修复 Agent，允许进行最大 3 次的 `Re-planning` 尝试，大幅减少自动化修复的空轮率与失败率。
+            </div>
+            <div class="rec-action">try_fix() -> catch -> replan() -> retry</div>
+          </div>
+          <!-- Rec 4 -->
+          <div class="rec-card rec-med">
+            <span class="rec-badge">规范约束</span>
+            <div class="rec-title">建议四：本地规约 `.qualoop/rules` 注入</div>
+            <div class="rec-source">Inspired by Devin Rules / MetaGPT SOP</div>
+            <div class="rec-body">
+              支持在项目根目录下放置特定的开发规范 Markdown 文档，由系统在 Tester 执行和 Scorer 价值评分阶段自动作为局部变量提示词注入，使 AI 的行为习惯完美契合当前团队的编程规范。
+            </div>
+            <div class="rec-action">load_rules_to_prompt()</div>
+          </div>
+          <!-- Rec 5 -->
+          <div class="rec-card rec-med">
+            <span class="rec-badge">高并发与低耦合</span>
+            <div class="rec-title">建议五：发布-订阅式共享事件驱动总线</div>
+            <div class="rec-source">Inspired by MetaGPT Pub-Sub</div>
+            <div class="rec-body">
+              将当前的强顺序五角色协作改写为事件驱动。Tester 发现 Issue 时发布 `issue_detected` 事件，Scorer 与 Scheduler 订阅该事件进行后续响应，大幅提升各系统角色的并发能力和模块插拔度。
+            </div>
+            <div class="rec-action">event_bus.publish(issue_detected)</div>
+          </div>
+          <!-- Rec 6 -->
+          <div class="rec-card rec-high">
+            <span class="rec-badge">质量安全阀</span>
+            <div class="rec-title">建议六：基于 SOP 的智能体互审与文档闸门</div>
+            <div class="rec-source">Inspired by MetaGPT SOP</div>
+            <div class="rec-body">
+              在 L3 自动入库前加入智能体 Peer Review。Executor 提交 Diff 补丁后，唤醒 Scorer 充当 Reviewer 角色，双重审核是否背离 North Star。审查通过并标记 `review_approved` 后方可自动 Merge。
+            </div>
+            <div class="rec-action">review_approved == True -> merge</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Smooth highlighting of side navigation links during scroll
+    (function () {
+      const links = document.querySelectorAll("nav.side a.nav-link");
+      const sections = [...links].map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+
+      function onScroll() {
+        let current = sections[0];
+        for (const sec of sections) {
+          if (sec.getBoundingClientRect().top <= 150) current = sec;
+        }
+        links.forEach((a) => {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + current.id);
+        });
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+</body>
+</html>
