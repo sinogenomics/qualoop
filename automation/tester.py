@@ -1056,13 +1056,48 @@ def auto_update_development_report(project_root: Path, modified_files: list[str]
                 json_match = None
                 
         if not json_match:
-            # High-fidelity fallback template if LLM query returned async spawn ID
+            # High-fidelity fallback template if LLM query returned async spawn ID or budget exceeded
             mod_names = ", ".join(Path(f).name for f in modified_files)
             milestone = f"Qualoop 框架自动优化与升级 ({mod_names})"
-            desc = "自动整理并升级了系统核心框架层代码，精简并规范化各自动化角色的校验执行流。"
-            tags = ["framework", "refactor", "auto-sync"]
-            severity = "中 (50/100)"
-            impact = "如果未进行此优化，Qualoop 将会保留冗余的历史分级检测机制，增加系统认知和运行时编排开销。"
+            
+            # Analyze git diff dynamically to construct detailed description & impact
+            has_pillow = "Pillow" in diff_text or "PIL" in diff_text or "Image.open" in diff_text
+            has_contract = "check_frontend_backend" in diff_text or "contract_mismatch" in diff_text
+            has_pdf = "PDF" in diff_text or "%PDF" in diff_text
+            has_mp3 = "MP3" in diff_text or "mp3" in diff_text
+            has_mp4 = "MP4" in diff_text or "mp4" in diff_text
+            has_self_upgrade = "check_qualoop_self_upgrade" in diff_text or "auto_update_development_report" in diff_text
+            
+            changes = []
+            tags = ["framework", "auto-sync"]
+            
+            if has_pillow:
+                changes.append("集成 Pillow 模块对交付物 PNG 图像尺寸及可用性进行深度校验")
+                tags.append("pillow-check")
+            if has_pdf:
+                changes.append("增加交付物 PDF 头签名及 Page 节点结构校验，阻断空壳 PDF")
+                tags.append("pdf-check")
+            if has_mp3:
+                changes.append("增加交付物 MP3 音频帧完整性及零字节/静音率检测")
+                tags.append("mp3-check")
+            if has_mp4:
+                changes.append("增加交付物 MP4 格式的 container atom 结构扫描")
+                tags.append("mp4-check")
+            if has_contract:
+                changes.append("引入前后端接口调用及文件格式后缀契约一致性静态对齐校验")
+                tags.append("contract-alignment")
+            if has_self_upgrade:
+                changes.append("建立框架自升级的 html 日志审计与存在性合规校验")
+                tags.append("compliance")
+                
+            if not changes:
+                desc = f"对 {mod_names} 进行了自动整理和模块优化，精简校验规则执行流。"
+                impact = "若未进行此优化，框架代码将存在非必要累积，增加系统认知和运行时编排开销。"
+                severity = "中 (50/100)"
+            else:
+                desc = "自动检测到框架核心模块升级，具体包含：" + "；".join(changes) + "。"
+                impact = "若未引入该校验，当生成损坏/空占物文件，或前后端接口映射中后缀定义不一致时，测试套件将出现假阳性放行，导致用户端文件无法打开。"
+                severity = "高 (80/100)"
             
         # 4. Generate HTML table row
         tags_html = "".join(f"<span>{t}</span>" for t in tags)

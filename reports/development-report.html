@@ -1202,19 +1202,19 @@ e:/path/to/qualoop
                   <span class="td-time">2026-05-23 18:38</span>
                 </td>
                 <td>
-                  <strong>Qualoop 框架自动优化与升级 (tester.py)</strong>
+                  <strong>新增自升级与生命周期合规审计 (tester.py)</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    自动整理并升级了系统核心框架层代码，精简并规范化各自动化角色的校验执行流。
+                    在框架自检中建立对 <code>reports/development-report.html</code> 存在与更新状态的强制校验，保证每次框架级代码更新都同步记录，支撑自主进化闭环。
                   </div>
                   <div class="table-tags">
-                    <span>framework</span><span>refactor</span><span>auto-sync</span>
+                    <span>framework</span><span>compliance</span><span>self-upgrade</span>
                   </div>
                 </td>
                 <td>
                   <span class="sev-badge sev-medium">中 (50/100)</span>
                 </td>
                 <td>
-                  如果未进行此优化，Qualoop 将会保留冗余的历史分级检测机制，增加系统认知和运行时编排开销。
+                  如果未实现，后续框架代码更新将失去规范度量记录，导致开发者或机器人遗漏发布日志的维护更新。
                 </td>
                 <td>
                   <span class="status-badge status-yes">已解决</span>
@@ -1229,19 +1229,47 @@ e:/path/to/qualoop
                   <span class="td-time">2026-05-23 19:51</span>
                 </td>
                 <td>
-                  <strong>Qualoop 框架自动优化与升级 (tester.py)</strong>
+                  <strong>支持大模型自主发布日志生成与稳定性提升 (tester.py)</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    自动整理并升级了系统核心框架层代码，精简并规范化各自动化角色的校验执行流。
+                    重构并集成了大模型（Gemini 3.5 Flash）审计和发布日志自动生成功能，优化大模型超量触发限制（LLM Storm）时的降级与退避逻辑，提升低层框架生命周期的健壮性。
                   </div>
                   <div class="table-tags">
-                    <span>framework</span><span>refactor</span><span>auto-sync</span>
+                    <span>automation</span><span>llm-generation</span><span>robustness</span>
                   </div>
                 </td>
                 <td>
                   <span class="sev-badge sev-medium">中 (50/100)</span>
                 </td>
                 <td>
-                  如果未进行此优化，Qualoop 将会保留冗余的历史分级检测机制，增加系统认知和运行时编排开销。
+                  若无此支持，系统在模型配额超限时，发布日志的描述将退化为粗放且重复的硬编码模板，降低版本迭代的可视度。
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已解决</span>
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已推送</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="stage-num">阶段 23</span>
+                  <span class="td-time">2026-05-23 20:10</span>
+                </td>
+                <td>
+                  <strong>新增交付物格式深度校验与前后端契约对齐审计 (tester.py)</strong>
+                  <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
+                    1. <strong>交付物完整性校验</strong>：集成基于 Pillow 的 PNG 尺寸检查、PDF 页面节点扫描、MP3 静音/零字节比例检测及 MP4 容器 atom 解析，自动发现并阻断低品质 Mock 坏片。<br />
+                    2. <strong>前后端契约校验</strong>：引入 <code>check_frontend_backend_contract_alignment</code> 静态审计，自动提取后端 Python 后缀和前端 JS 映射，识别双端格式不一致。
+                  </div>
+                  <div class="table-tags">
+                    <span>deliverables-audit</span><span>contract-alignment</span><span>file-integrity</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="sev-badge sev-high">高 (80/100)</span>
+                </td>
+                <td>
+                  如果缺乏此校验，大模型在自动优化或外部调用中如果生成损坏/后缀不一致的文件（例如把 PDF 写成 ppex 或把 Markdown 写成 pdf），测试套件将出现假阳性通过，导致用户端文件无法正常打开。
                 </td>
                 <td>
                   <span class="status-badge status-yes">已解决</span>
