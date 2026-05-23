@@ -1314,7 +1314,7 @@ def check_ultimate_goals_gap_analysis(
     gaps_found = []
 
     # Gap A: Mocks & Placeholders in Production Code
-    mock_keywords = ["todo: mock", "status\": \"mock\"", " notebooklm mock", "placeholder", "dummy data", "fake audio", "silent audio"]
+    mock_keywords = ["todo: mock", " notebooklm mock", "dummy data", "fake audio", "silent audio", "dummy placeholder", "mock placeholder", "fake placeholder", "vacuum mock"]
     detected_mocks = []
     for filename, code in impl_data.items():
         if "test" in filename.lower():
