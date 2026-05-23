@@ -369,6 +369,7 @@
           <li><a href="#round26" class="nav-link">R26: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round27" class="nav-link">R27: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round28" class="nav-link">R28: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round29" class="nav-link">R29: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -920,6 +921,25 @@
         </div>
       </section>
 
+            <!-- Round 29 (35th Research) -->
+      <section id="round29">
+        <h2>R29：执行超时看门狗与自愈路由、Actor 集群哈希一致路由与浏览器 IndexedDB 会话快照 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的故障隔离与会话快照机制</span>
+              <span class="product-meta">Step watchdogs, consistent hash failover & IndexedDB context restoration</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 步骤超时中断与动态自愈路由 (Timeout Watchdog)</strong>：支持为节点设置毫秒级超时定时器自动打断阻塞协程并发射超时事件，引导自愈路由器切换回滚至备用沙盒。</li>
+              <li><strong>AutoGen v0.4 · gRPC 双向心跳检测与哈希环一致路由接管 (Hash Ring Failover)</strong>：基于 gRPC 心跳包快速检测故障节点并更新活性状态，配合一致性哈希环路由自动无损迁移 mailbox 邮件与修复任务。</li>
+              <li><strong>browser-use · 浏览器 LocalStorage 与 IndexedDB 结构化会话快照 (IndexedDB Snapshot)</strong>：在不打扰安全审计的前提下一键序列化 Cookies、本地存储及 IndexedDB 记录并在新沙盒秒级反序列化重建，实现会话保活。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1005,9 +1025,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:20:10 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:20:55 UTC</strong>.
         </div>
+        
         
         
         
