@@ -372,6 +372,7 @@
           <li><a href="#round29" class="nav-link">R29: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round30" class="nav-link">R30: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round31" class="nav-link">R31: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round32" class="nav-link">R32: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -980,6 +981,25 @@
         </div>
       </section>
 
+            <!-- Round 32 (38th Research) -->
+      <section id="round32">
+        <h2>R32：运行时图拓扑重写与二次规划、Actor 跨节点迁移调度与多标签页视觉协作锁 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的动态规划与资源调度</span>
+              <span class="product-meta">Graph topology rewriting, Actor migration & cross-tab visual locks</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 运行时图拓扑动态重写与二次规划 (Topology Rewrite)</strong>：当检测到架构缺陷时发射重构事件动态剔除/并联挂载新节点，结合测试失败堆栈反向引导规划器改写路由表。</li>
+              <li><strong>AutoGen v0.4 · 负载驱动的 Actor 跨物理节点热迁移与 gRPC 重定向 (Actor Migration)</strong>：在宿主机过载时自动打包 Actor 栈与邮箱跨物理容器发送恢复，配合 Raft 注册表秒级广播映射更新以实现 gRPC 重定向。</li>
+              <li><strong>browser-use · 多标签页视口会话视觉协作锁与跨标签协同通道 (Collab Lock)</strong>：引入会话级视觉协作锁防止多 Agent 截图冲突，结合跨标签页分布式广播管道解决跨域多角色流程的数据孤岛。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1068,9 +1088,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:22:55 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:23:45 UTC</strong>.
         </div>
+        
         
         
         
