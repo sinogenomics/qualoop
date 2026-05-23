@@ -1,8 +1,8 @@
 # Qualoop — Latest issues
 
-Generated: `2026-05-23T01:13:01.456411Z`  
-Round: `pass_20260523_011301`  
-Qualified this round: **1** (max score: 80)
+Generated: `2026-05-23T03:39:25.656769Z`  
+Round: `pass_20260523_033924`  
+Qualified this round: **2** (max score: 80)
 
 ---
 
@@ -29,6 +29,10 @@ No open automated/assigned tasks.
 
 - **[MEDIUM]** Qualoop self-upgrade content check failed: Modified files (automation/tester.py) are not referenced in the added description of `reports/development-report.html`. Please ensure the report update description explicitly mentions: tester. (fingerprint: `cd202a6ee11068fc`)
   - Affected paths: `automation/tester.py`, `reports/development-report.html` | Status: `resolved` | Score: **80** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.*
+
+- **[MEDIUM]** Qualoop self-upgrade rule violation: Qualoop framework code has been modified (automation/__init__.py, automation/executors/base.py, automation/paths.py, automation/qualoop.py, automation/scheduler.py, automation/tester.py, automation/_qsum.py, automation/guardian.py), but no corresponding update was recorded in `reports/development-report.html`. Every Qualoop upgrade must be documented. (fingerprint: `2e552cc2fe548130`)
+  - Affected paths: `reports/development-report.html`, `automation/__init__.py`, `automation/executors/base.py`, `automation/paths.py`, `automation/qualoop.py`, `automation/scheduler.py`, `automation/tester.py`, `automation/_qsum.py`, `automation/guardian.py` | Status: `resolved` | Score: **80** (Qualified)
   - Scorer Rationale: *Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.*
 
 

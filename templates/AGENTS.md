@@ -1,11 +1,17 @@
+# North Star (from installer)
+
+> Source: see [`GOALS.md`](./GOALS.md) (single source of truth, not embedded).
+> AI agents MUST read that file before producing any opinion this round.
+
+@GOALS.md
+
+---
+
 # AGENTS.md — Qualoop（质环）契约
 
 > 这是本业务项目对所有 AI 编码代理（Codex CLI、Cursor、Claude Code、Gemini CLI、Aider、Amp 等）的**唯一权威契约**。
-> 其它专属文件（`CLAUDE.md`、`GEMINI.md`、`.cursor/rules/qualoop.mdc`）都应只作为一行 include 指向本文件。
 >
 > 方法论源仓库：<https://github.com/sinogenomics/qualoop>（已作为只读 submodule 挂在 `tools/qualoop/`，禁止修改其中文件）
->
-> **First-time AI agents on this machine**: read [`tools/qualoop/AI-START-HERE.md`](./tools/qualoop/AI-START-HERE.md) STEP 1 once to ensure the user's personal Qualoop rule is installed. It is idempotent.
 
 ---
 
@@ -14,8 +20,8 @@
 <!-- NORTH_STAR_BEGIN -->
 **本项目的 North Star（请用 1–3 句填写，所有修改意见以此为判据）：**
 
-- _（示例）让 X 在 Y 场景下达到 Z 体验/性能/可靠性基线。_
-- _（请替换为本项目实际目标；未填写时拒绝执行任何 L2+ 操作）_
+- 面向 K-12 学生、自学者 and 家长辅导场景，允许用户上传课本内容照片后，在本地可靠地一键整理并生成和下载多种高品质学习材料（包括音频讲解、视频讲解、信息图与思维导图、Slides）。
+- 通过稳定健全的本地 AI 命令行调度，在任何网络、分辨率、超时或认证异常时提供清晰透明的中文错误引导，确保本地全链路端端运行的极高稳定性。
 
 <!-- NORTH_STAR_END -->
 
@@ -27,12 +33,10 @@
 
 | 用户说 | 你必须做 |
 |--------|----------|
-| **Qualoop 规划** / **质环规划** | 分析全局目标及 `GOALS.md` / `DEVELOPMENT_GOALS.md`，执行 **Architect / Planner** 规划；输出架构/设计蓝图（如 `docs/ARCHITECTURE_SCHEME.md`）并生成里程碑式的候选 Issue（`type: architecture`）写入台账。 |
-| **Qualoop 初始化** / **质环 初始化** | 读 `tools/qualoop/ADOPTION_GUIDE.md` Phase 0–1；仅在**当前业务项目**根下创建 `automation/`、`automation/config.json`（参照 `tools/qualoop/templates/config.example.json`）、最小 L1（IssueStore + Tester + Scorer + `reports/latest_issues.md`）。不动业务源码。 |
-| **Qualoop 检查** / **质环检查** | 跑一轮：发现 → Scorer 打分 → 必须产出 ≥ `minQualifiedPerRound` 条 `value_qualified` 意见；更新 `automation/issues.json` 与 `automation/reports/latest_issues.md`；输出当轮合格数、最高分、未合格原因。 |
+| **Qualoop 初始化** / **质环 初始化** | 读 `tools/qualoop/ADOPTION_GUIDE.md`；仅在**当前业务项目**根下创建 `automation/` 与必要工具环境。不动业务源码。 |
+| **Qualoop 检查** / **质环检查** | 跑一轮：发现 → Scorer 打分 → 必须产出合格意见并自动分派和执行修复；更新 `automation/issues.json` 与 `automation/reports/latest_issues.md`。 |
 | **Qualoop 加深检查** / **质环加深** | 上轮空轮或低分：扩展 discovery 渠道（lint、单测、覆盖、E2E、文档漂移、性能基线、自动化自身健康），直至出现高分合格意见；不得交白卷。 |
-| **Qualoop 升级到 L2 / L3** | 修改 `qualoop.json` 的 `maturity`，并按 `tools/qualoop/ADOPTION_GUIDE.md` Phase 2/3 启用 Scheduler / Executor 链路；继续受三前提约束。 |
-| **Qualoop 执行** | 仅 L3 启用；仅处理 `value_qualified` 且已分配的 Issue；遵守 Executor 策略表；变更后 Verifier 复验。 |
+| **Qualoop 执行** | 处理合格的且已分配的 Issue；遵守 Executor 策略表；变更后 Verifier 复验。 |
 
 未识别触发词时，按用户自然语言执行，但**仍受第 2 节三前提约束**。
 
@@ -40,19 +44,17 @@
 
 如果本会话尚未向用户输出过 Qualoop 简报（用户首次在本机/本项目接触 Qualoop），**立即输出一次**：
 
-> ✅ 本项目已采用 Qualoop（质环）方法论，成熟度 `<qualoop.json 中的 maturity>`。
+> ✅ 本项目已采用 Qualoop（质环）全自动闭环自愈开发方法论。
 >
 > 北极星：见本文件 §0 / `NORTH_STAR.md`（如存在）。
 >
-> 触发词：`Qualoop 检查` / `Qualoop 加深检查` / `Qualoop 升级到 L2/L3`。任何自然语言开发请求都在三前提（目标对齐 / 每轮必有产出 / Scorer ≥ 60）下执行。
+> 触发词：`Qualoop 检查` / `Qualoop 加深检查`。任何自然语言开发请求都在三前提（目标对齐 / 每轮必有产出 / Scorer ≥ 60）下执行。
 
 之后再处理用户的具体请求。
 
 ---
 
 ## 2. 三前提（不可妥协，每轮必须满足）
-
-引用 `tools/qualoop/METHODOLOGY.md` §1.3–§1.5：
 
 1. **目标对齐**：每条意见服务上文 North Star，必填 `metadata.goal_alignment_note`；不得为「表面变绿」而削弱测试/检测/lock/lease 或破坏 human-in-the-loop。
 2. **每轮必有产出**：每轮至少 1 条合格意见；**禁止只回复「没问题」或「一切正常」**；空轮 = 检查深度不足，必须加深，不得视为完成。
@@ -62,13 +64,11 @@
 
 ## 3. 五角色边界
 
-引用 `tools/qualoop/METHODOLOGY.md` §2 与 `ARCHITECTURE.md`：
-
 - **Tester** 只发现、不修改业务源码
 - **Scorer** 是唯一允许写 `value_score*` 的角色
-- **Scheduler** 是唯一分配写入者；L2+ 只分派 `value_qualified` 的 Issue
+- **Scheduler** 是唯一分配写入者，只分派 `value_qualified` 的 Issue
 - **Executor** 在 path lock + lease 内变更；填 `goal_alignment_note`
-- **Guardian** 保活长循环，按 backoff 与 stagger 重启
+- **Guardian** 在系统后台常驻运行并对整个闭环链路进行保活监管，按 backoff 与 stagger 重启各角色
 - 同一角色不要在一次交互里同时扮演多个写入者；尤其严禁 Tester 直接改业务源码
 
 ---
@@ -84,26 +84,22 @@
 
 ## 5. 配置
 
-读取**项目根** `qualoop.json`（若不存在请提示用户运行 `tools/qualoop/scripts/install-agents.ps1` 或 `.sh`）：
+读取**项目根** `qualoop.json`：
 
 ```json
 {
   "methodologyRoot": "tools/qualoop",
   "minValueScore": 60,
-  "minQualifiedPerRound": 1,
-  "maturity": "L1"
+  "minQualifiedPerRound": 1
 }
 ```
 
-- `maturity = L1`（默认）：只观察 + 记录，不自动改业务代码
-- `maturity = L2`：启用 Scheduler 分配，仍人工执行
-- `maturity = L3`：启用 Executor 自动修复，遵守策略表
+Qualoop 默认启用 Executor 自动修复，遵守 `automation/EXECUTOR_POLICY.md`。
 
 ---
 
-## 6. 成熟度与人机闸门
+## 6. 人机闸门
 
-- 默认从 **L1** 开始；切换到 L3 必须用户显式说「**Qualoop 升级到 L3**」
 - 任意置信不足的修改 → `requires_human: true`，不得自动落库
 - 任意可能影响 North Star 的破坏性变更（删测试、关检测、降阈值换绿、bypass lock/lease）→ **必须拒绝**，并以 `wontfix` + `metadata.goal_misaligned: true` 记录
 

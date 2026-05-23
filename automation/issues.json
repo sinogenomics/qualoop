@@ -25,6 +25,36 @@
       },
       "created_at": "2026-05-23T01:03:33+00:00",
       "updated_at": "2026-05-23T01:13:01+00:00"
+    },
+    {
+      "id": "61c14b56-4c8d-43c7-8273-80f7d79bc6a7",
+      "severity": "medium",
+      "type": "compliance",
+      "description": "Qualoop self-upgrade rule violation: Qualoop framework code has been modified (automation/__init__.py, automation/executors/base.py, automation/paths.py, automation/qualoop.py, automation/scheduler.py, automation/tester.py, automation/_qsum.py, automation/guardian.py), but no corresponding update was recorded in `reports/development-report.html`. Every Qualoop upgrade must be documented.",
+      "status": "resolved",
+      "assigned_executor": null,
+      "paths": [
+        "reports/development-report.html",
+        "automation/__init__.py",
+        "automation/executors/base.py",
+        "automation/paths.py",
+        "automation/qualoop.py",
+        "automation/scheduler.py",
+        "automation/tester.py",
+        "automation/_qsum.py",
+        "automation/guardian.py"
+      ],
+      "fingerprint": "2e552cc2fe548130",
+      "metadata": {
+        "value_score": 80,
+        "value_score_rationale": "Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.",
+        "value_qualified": true,
+        "scored_at": "2026-05-23T03:38:58.904552Z",
+        "scorer_round_id": "pass_20260523_033858",
+        "resolved_by": "tester_auto"
+      },
+      "created_at": "2026-05-23T03:38:58+00:00",
+      "updated_at": "2026-05-23T03:39:25+00:00"
     }
   ]
 }

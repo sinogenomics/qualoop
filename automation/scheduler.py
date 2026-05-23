@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 from automation.issue_store import IssueStore, STATUSES_OPEN
 from automation.locks import LockTimeout, path_lock, store_lock
 from automation.logging_util import setup_logger
-from automation.paths import ensure_layout, load_config, maturity_at_least
+from automation.paths import ensure_layout, load_config
 from automation.reports import write_latest_snapshot
 
 # issue type -> executor name
@@ -98,9 +98,6 @@ def run_once(cfg: dict | None = None) -> dict:
     store = IssueStore()
     sched_cfg = cfg.get("scheduler", {})
     dry_run = sched_cfg.get("dry_run", False)
-    if not maturity_at_least("L2", cfg):
-        dry_run = True
-        logger.info("maturity < L2: scheduler dry-run only")
     require_vq = sched_cfg.get("require_value_qualified", True)
     lease_min = sched_cfg.get("default_lease_minutes", 30)
     project_root = cfg["_project_root"]

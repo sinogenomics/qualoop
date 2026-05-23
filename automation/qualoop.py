@@ -36,7 +36,7 @@ def cmd_init(args):
     reports_dir = get_abs_path("automation/reports")
     os.makedirs(reports_dir, exist_ok=True)
     
-    print("✅ Qualoop L1 Observe workspace initialized successfully.")
+    print("✅ Qualoop workspace initialized successfully.")
     print("Paths created:")
     print("  - automation/config.json")
     print("  - automation/issues.json")
@@ -190,7 +190,7 @@ def cmd_check(args):
         print("="*50 + "\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="Qualoop CLI Automation Tool (L1)")
+    parser = argparse.ArgumentParser(description="Qualoop CLI Automation Tool")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # init command

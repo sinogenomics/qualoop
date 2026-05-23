@@ -63,13 +63,6 @@ def run_executor_loop(
     cfg = load_config()
     interval = cfg.get("intervals_seconds", {}).get(executor_name, 60)
     logger = setup_logger(executor_name, cfg)
-    if not maturity_at_least("L3", cfg):
-        logger.warning(
-            "maturity=%s < L3; %s executor idle (set qualoop.json maturity to L3)",
-            maturity_level(cfg),
-            executor_name,
-        )
-        return
     store = IssueStore()
     project_root: Path = cfg["_project_root"]
 

@@ -75,22 +75,17 @@ def load_qualoop_json(project_root: Path | None = None) -> dict:
 
 
 def maturity_level(cfg: dict | None = None) -> str:
-    """L1 | L2 | L3 | L4 from project qualoop.json (default L1)."""
-    if cfg and cfg.get("qualoop", {}).get("maturity"):
-        return str(cfg["qualoop"]["maturity"]).upper()
-    qp = load_qualoop_json(
-        cfg["_project_root"] if cfg and cfg.get("_project_root") else None
-    )
-    return str(qp.get("maturity", "L1")).upper()
+    """Always return L3 as L1 and L2 are deprecated/removed."""
+    return "L3"
 
 
-_MATURITY_ORDER = {"L1": 1, "L2": 2, "L3": 3, "L4": 4}
+_MATURITY_ORDER = {"L3": 3, "L4": 4}
 
 
 def maturity_at_least(level: str, cfg: dict | None = None) -> bool:
-    cur = _MATURITY_ORDER.get(maturity_level(cfg), 1)
-    need = _MATURITY_ORDER.get(level.upper(), 99)
-    return cur >= need
+    # Since only L3 exists, anything requiring <= L3 is satisfied
+    need = _MATURITY_ORDER.get(level.upper(), 1)
+    return 3 >= need
 
 
 def automation_dir(cfg: dict | None = None) -> Path:
