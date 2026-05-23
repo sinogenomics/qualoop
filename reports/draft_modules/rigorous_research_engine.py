@@ -92,7 +92,9 @@ class QRRVE(object):
             html = re.sub(pattern, replace_fn, html)
 
         # Update last run audit timestamp in HTML
-        timestamp_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        from datetime import timedelta
+        hkt_zone = timezone(timedelta(hours=8))
+        timestamp_str = datetime.now(hkt_zone).strftime("%Y-%m-%d %H:%M:%S HKT")
         status_box = """
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
             <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>{}</strong>.
@@ -125,7 +127,9 @@ class QRRVE(object):
             return
 
         # Prepare Phase 17 HTML row
-        time_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+        from datetime import timedelta
+        hkt_zone = timezone(timedelta(hours=8))
+        time_str = datetime.now(hkt_zone).strftime("%Y-%m-%d %H:%M HKT")
         new_row = """              <tr>
                 <td>
                   <span class="stage-num">阶段 17</span>
