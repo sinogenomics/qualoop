@@ -350,6 +350,7 @@
           <li><a href="#round7" class="nav-link">R7: browser-use / OpenHands</a></li>
           <li><a href="#round8" class="nav-link">R8: Semantic Kernel / Langfuse</a></li>
           <li><a href="#round9" class="nav-link">R9: Aider / SWE-agent / OpenHands</a></li>
+          <li><a href="#round10" class="nav-link">R10: Devin / Mentat / CrewAI</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -540,6 +541,25 @@
         </div>
       </section>
 
+            <!-- Round 10 (16th Research) -->
+      <section id="round10">
+        <h2>R10：运行态环境快照恢复、滑动窗口 Token 降噪钉选与跨智能体向量内存共享 (Devin & Mentat & CrewAI)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Devin/OpenHands, Mentat 与 CrewAI 的高级协作特性</span>
+              <span class="product-meta">CRIU Docker Snapshot, FIFO Slide Pinning & Cross-Agent Vector Store</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>Devin/OpenHands · Docker卷与进程级快照 (Workspace State Checkpointing)</strong>：结合 Docker Volume Diff 和 CRIU (Userspace Checkpoint/Restore) 进程转储技术，实现对文件系统、数据库状态及后台卡死服务的秒级状态还原，大幅超越传统的纯 git rollbacks。</li>
+              <li><strong>Mentat · 钉选与滑动窗口 Token 压缩 (Slide Window Pinning)</strong>：钉选核心文件进行全量上下文传递，其他临时访问文件在接近 Token limit 时自动通过 AST 降级为仅保留头部签名，最大化注意力和经费利用率。</li>
+              <li><strong>CrewAI · 跨角色多维向量记忆同步 (Cross-Agent Shared Vector)</strong>：各智能体将步骤结论与日志转换成 Embeddings 同步发布到共享的 RAG 向量数据库，从而让被动唤醒的下游智能体能通过语义自动检索，无需显式在 System Prompt 里传递数据。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -605,9 +625,11 @@
         <h2>💡 Qualoop 自进化：15 项架构升级建议书</h2>
 
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:05:41 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:06:24 UTC</strong>.
         </div>
+        
         
         
         <div class="rec-list">

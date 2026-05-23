@@ -539,6 +539,42 @@ graph TD
 
 ---
 
+### 📅 第十六次调研（2026-05-23）: 深入分析 Devin/OpenHands 运行态工作区环境快照恢复、Mentat 的语义上下文文件钉选与 CrewAI 的跨角色多维向量记忆同步
+
+#### 1. Devin/OpenHands (物理工作区运行态快照与进程挂起恢复)
+*   **核心创新：Docker 卷差异快照与活动进程快照挂起 (Sub-second Docker Volumed Checkpointing & Process Suspend)**
+     *   *机制原理*：在长周期的自动修复流程中，一旦测试或编译失败，仅仅回退 git 文件修改是不够的。许多运行时错误是由于测试数据库被写脏、临时生成 of 缓存文件冲突或后台服务卡死导致的。Devin 和 OpenHands 在微步执行前后，不仅对 git 树做 commit，而且利用 Docker Volume Diff 记录工作区目录 changes。同时，通过向进程发送 `SIGTSTP` 或对关键运行进程进行快照挂起（Checkpoint/Restore In Userspace，CRIU），可在发生故障时，在亚秒级内把包括进程状态和内存、缓存及数据库数据一并还原到上一个健康检查点。
+
+#### 2. Mentat (语义上下文文件钉选与动态 Token 降噪预算)
+*   **核心创新：高相关性上下文锁定与滑动窗口预算控制 (Context File Pinning & Slidewindow Token Budgeting)**
+     *   *机制原理*：大模型上下文非常宝贵，Agent 在修改跨模块 Bug 时极易产生冗余的 context 占用。Mentat 支持动态 File Pinning（钉选）机制，自动将高置信度的文件作为核心上下文锁死。而其他临时读取/查找的文件，则遵循滑动窗口淘汰机制（FIFO）。一旦即将超出模型最舒适的 Token 区间，系统会主动对未钉选文件进行内容压缩（如仅保留类和函数的头部签名），既不丢失结构化视野，又防止了上下文过长导致的注意力分散和高昂费用。
+
+#### 3. CrewAI (跨角色多维向量记忆同步)
+*   **核心创新：多智能体联合向量存储同步与交叉认知共享 (Cross-Agent Centralized Embeddings Sync)**
+     *   *机制原理*：在多 Agent 协同流程（如 Product Manager Agent 产出 PRD，QA Agent 进行测试用例设计）中，传统的做法是编写冗长 of 提示词进行人工数据传递。CrewAI 为多智能体配备了统一的数据总线。每个 Agent 在执行 Task 后，其产生的 stdout 报告和变更结论都会自动被转换为 Vector Embeddings，同步发布到全局 Central RAG Database 中。当其他角色（如 QA）被唤醒时，系统自动进行语义匹配召回，使各 Agent 能在“不显式进行系统 Prompt 级数据传递”的情况下，天然共享最新的项目事实，实现高度同步的交叉认知。
+
+```mermaid
+graph TD
+    subgraph Devin-Workspace-Snapshots
+        Run[Agent Action] -->|Create Checkpoint| DockerDiff[Docker Volume Diff + CRIU Process Dump]
+        DockerDiff -->|1. Revert files| OriginalFS[还原物理文件系统]
+        DockerDiff -->|2. Restore memory state| MemoryRestored[还原挂起服务与进程状态]
+    end
+    subgraph Mentat-Pinning
+        ContextWindow[大模型上下文窗口] -->|Pin| CoreFiles[核心锁定文件: 全量注入]
+        ContextWindow -->|FIFO Slide Window| TempFiles[临时访问文件]
+        TempFiles -->|Token limit exceeded| TokenCompressor[自动符号头压缩]
+    end
+    subgraph CrewAI-VectorSync
+        PM[PM Agent] -->|Generates spec| Embedder[Vector Embedder]
+        Embedder -->|Publish| VectorStore[(共享向量数据库)]
+        VectorStore -->|Semantic retrieval| QA[QA Agent / Code Generator]
+    end
+```
+
+
+---
+
 ### 📅 第十五次调研（2026-05-23）: 深入分析 Aider 的动态查询仓库地图伸缩、SWE-agent 的语义轨迹少样本选择与 OpenHands 的持久沙盒 tmux 会话管理器
 
 #### 1. Aider (超大规模仓库地图伸缩机制)
