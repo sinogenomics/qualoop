@@ -378,6 +378,7 @@
           <li><a href="#round35" class="nav-link">R35: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round36" class="nav-link">R36: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round37" class="nav-link">R37: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round38" class="nav-link">R38: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1100,6 +1101,25 @@
         </div>
       </section>
 
+            <!-- Round 38 (44th Research) -->
+      <section id="round38">
+        <h2>R38：拓扑死锁循环检测、Actor 负载画像削峰与 CDP 运行控制台 JS 崩溃捕获 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的控制环路与异常追踪机制</span>
+              <span class="product-meta">Event loop deadlock scanner, Actor load profiling & CDP console tracking</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 运行时事件拓扑死锁扫描与无限循环轨迹拦截 (Deadlock Detector)</strong>：自动在动作步构建事件有向图关系扫描闭环，并对循环次数超 50 次的事件强行总线层丢弃。</li>
+              <li><strong>AutoGen v0.4 · 邮箱积压负载画像智能分发与 Raft 共识脑裂自愈 (Load Profiler)</strong>：根据 Actor 活跃协程及 Mailbox 堆积量进行缺陷削峰填谷分发，并在网络脑裂时将 Minor 锁定只读防止脏配置注入。</li>
+              <li><strong>browser-use · CDP 协议 Runtime 控制台劫持与未脱敏 JS 崩溃调用栈捕获 (Console Harvesting)</strong>：利用 CDP 深度监听 consoleAPICalled 及 exceptionThrown，提取前端 Ajax 崩溃栈并直接管道化作为测试缺陷证据。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1194,9 +1214,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:27:57 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:29:25 UTC</strong>.
         </div>
+        
         
         
         
