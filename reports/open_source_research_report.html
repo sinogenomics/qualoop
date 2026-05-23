@@ -374,6 +374,7 @@
           <li><a href="#round31" class="nav-link">R31: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round32" class="nav-link">R32: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round33" class="nav-link">R33: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round34" class="nav-link">R34: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1020,6 +1021,25 @@
         </div>
       </section>
 
+            <!-- Round 34 (40th Research) -->
+      <section id="round34">
+        <h2>R34：事件去重防抖流控、邮箱水位 Actor 弹性伸缩与 CDP 隐式事件监听提取 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的流量控制与弹性资源伸缩</span>
+              <span class="product-meta">Event debouncing, dynamic Actor scaling & CDP event listener scraping</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 高并发事件指纹去重与防抖流式聚合 (Event Debouncing)</strong>：利用内容哈希进行事件去重，并挂载 500ms 防抖定时器对文件变更事件进行流式聚合，平滑控制流压力。</li>
+              <li><strong>AutoGen v0.4 · 邮箱水位驱动的 Actor 实例弹性扩缩容 (Elastic Provisioning)</strong>：自动监控 Actor 邮箱队列积压水位线，动态按需拉起/优雅注销同构容器实例并加入一致性哈希路由环。</li>
+              <li><strong>browser-use · CDP 协议 DOM 事件监听器提取与隐式可交互标记 (Implicit Click Locator)</strong>：基于 CDP 内存接口主动爬取无 Semantic Button 标签 div/span 上注册的 click 监听，百分之百补全 Action 空间。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1110,9 +1130,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:24:34 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:25:20 UTC</strong>.
         </div>
+        
         
         
         
