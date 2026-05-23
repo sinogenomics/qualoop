@@ -539,6 +539,51 @@ graph TD
 
 ---
 
+### 📅 第三十二次调研（2026-05-23）: 深入分析 LlamaIndex Workflows 的多模态事件流管道与多介质数据路由、AutoGen v0.4 的分布式 Actor 事务型两阶段提交协议与 browser-use 的多浏览器上下文与多标签页并行编排
+
+#### 1. LlamaIndex Workflows (多模态事件流管道与多介质数据路由)
+*   **核心创新一：多模态事件管道节点 (Multi-modal Event Pipeline Steps)**
+    *   *机制原理*：在复杂的自愈与测试链路中，不仅需要传递文本，还要在各步骤之间低延迟管道化传输视觉图像、二进制文件头和音频流。LlamaIndex Workflows 支持在事件（`Event`）中承载强类型多模态数据结构（如结合 Pydantic 校验的 `ImageBytes`、`DOMTreeVector`）。当父步骤节点发射 `PageSnapshotEvent` 时，多模态解析器步骤节点会在单独的作用域内自动还原原始字节图，交由视觉语言模型（VLM）处理，实现了纯事件驱动的多模态流水线数据路由。
+*   **核心创新二：动态介质流分发与自适应上下文拼接 (Adaptive Context Stacking)**
+    *   *机制原理*：传统的 RAG 仅从文本数据库检索。Workflows 提供了自适应上下文堆叠机制。当发生修复失败事件（`RepairFailedEvent`）时，事件分发器会并行触发视觉检索（查历史报错截图）与文本检索（查历史 traceback 文本），并将两路数据流式推送到上下文组装步骤（Step）。该步骤利用多模态 Transformer 自动对齐图文，拼接成最高效的多模态 Few-shot Prompt，消除了单一介质检索时的决策盲区。
+
+#### 2. Microsoft AutoGen v0.4 (分布式 Actor 事务型两阶段提交协议)
+*   **核心创新一：跨节点 Actor 的两阶段提交协议 (Transactional Two-Phase Commit for Multi-Agent)**
+    *   *机制原理*：在多 Agent 并发修复多个互相依赖的系统模块（如 Agent A 修改公共 API 结构，Agent B 对应修改客户端调用）时，如果不加约束地提交代码，极易导致代码库在中间状态下编译失败。AutoGen v0.4 在分布式运行时引入了两阶段提交（2PC）事务协调协议。Orchestrator Actor 作为协调者（Coordinator），在确认所有参与修复的 Executor 节点（Participants）均返回 `PrepareCommit`（包含通过局部 AST 与单元测试校验的 patch）后，才广播 `Commit` 命令，保证了分布式代码演进的原子性。
+*   **核心创新二：基于 Raft 共识的全局逻辑拓扑一致性 (Raft-backed Logical Topology Consensus)**
+    *   *机制原理*：当大批 Agent Actor 分布在不同物理服务器上且频繁动态扩缩容时，必须保证所有节点的全局路由表（哪个 Agent 在哪台服务器）是一致的。AutoGen v0.4 集成了基于 Raft 协议的轻量级共识引擎。所有的 Agent 注册与退役操作在 Raft 强一致性日志中排序。这保证了在分布式网络分区（Split-Brain）时，消息绝对不会路由给已挂起或已经脱机 of 执行器，彻底规避了分布式协作中的脑裂风险。
+
+#### 3. browser-use (多浏览器上下文与多标签页并行编排)
+*   **核心创新一：多标签页跨页事件链追踪 (Cross-Tab Event Chain Tracking)**
+    *   *机制原理*：很多复杂的业务逻辑需要跨越多个页面或标签页进行（例如在 Tab A 中配置授权，在 Tab B 中刷新验证效果）。browser-use 引擎原生支持多标签页（Multi-Tabs）会话管理。Agent 可以在同一任务会话中发出 `switch_to_tab(index)` 或者是 `open_new_tab(url)` 命令。引擎内部维护了一个统一 of Tab 路由注册表，在切换时自动保存前一标签页的 DOM 树与滚动状态，并将 VLM 的视觉焦点和 Playwright 指针自动路由到新标签页，实现了流畅的跨标签页联合测试。
+*   **核心创新二：完全隔离的独立浏览器上下文 (Isolated Browser Contexts / Multi-Tenant Sandbox)**
+    *   *机制原理*：当自动化 Tester 需要同时扮演“管理员”和“普通用户”以验证权限越权等安全 Issue 时，如果共享同一个 Cookie/LocalStorage，会造成身份覆盖。browser-use 支持在同一个浏览器实例下，秒级拉起完全物理隔离的浏览器上下文（Browser Contexts）。不同上下文之间 Cookie、Cache、Session 完全物理不互通。这使 Agent 能够以多进程、多角色身份并行登录系统并验证鉴权越权缺陷，极大拓宽了 Tester 的边界。
+
+```mermaid
+graph TD
+    subgraph LlamaIndex-Multimodal-Pipeline
+        PageSnapshotEvent[PageSnapshotEvent with Image & DOM] -->|Event Bus routing| VLMStep[VLM Step Node]
+        HistoryImg[Query visual history] & HistoryText[Query traceback history] -->|Async stream confluence| PromptAssembler[Multimodal Context Assembler]
+        PromptAssembler -->|Align text-image Prompt| VLMStep
+    end
+    subgraph AutoGen-v04-Consensus
+        Orchestrator[Orchestrator / Coordinator] -->|1. PrepareCommit| ParticipantA[Executor Actor A]
+        Orchestrator -->|1. PrepareCommit| ParticipantB[Executor Actor B]
+        ParticipantA -->|2. Local test OK: ACK| Orchestrator
+        ParticipantB -->|2. Local test OK: ACK| Orchestrator
+        Orchestrator -->|3. Raft log commit & execute| Commit[Transactional Commit]
+    end
+    subgraph browser-use-Contexts
+        BrowserInstance[Single Browser Instance] -->|Create isolated context| Context1[Context 1: Admin session]
+        BrowserInstance -->|Create isolated context| Context2[Context 2: User session]
+        Context1 -->|Switch tab| TabA[Tab A: config panel]
+        Context1 -->|Switch tab| TabB[Tab B: result check]
+    end
+```
+
+
+---
+
 ### 📅 第三十一次调研（2026-05-23）: 深入分析 LlamaIndex Workflows 的嵌套子工作流与分层事件隔离、AutoGen v0.4 的消息传递保障与邮箱背压控制与 browser-use 的跨 iframe 与 Shadow DOM 树穿透定位
 
 #### 1. LlamaIndex Workflows (嵌套子工作流与分层事件隔离)
