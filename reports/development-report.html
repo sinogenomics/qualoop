@@ -502,7 +502,6 @@
         <li><a href="#prerequisites">三前提</a></li>
         <li><a href="#roles">五角色</a></li>
         <li><a href="#artifacts">交付物</a></li>
-        <li><a href="#maturity">成熟度</a></li>
         <li><a href="#metrics">指标</a></li>
         <li><a href="#docs">文档地图</a></li>
       </ul>
@@ -562,9 +561,9 @@ e:/path/to/qualoop
 
 只在【当前业务项目】：
 1. 创建 automation/，生成 config.json（参考 templates/config.example.json）
-2. 实现 L1：IssueStore + Tester + Scorer + reports/latest_issues.md
+2. 实现全自动闭环架构：IssueStore + Tester + Scorer + reports/latest_issues.md
 3. 遵守三前提：对齐、每轮必有产出、value_score≥60 才合格
-4. L1 不要大范围自动改业务代码
+4. 确保修改动作有界且安全，避免无限制重构
 
 完成后说明如何运行 tester/scorer --once，以及当轮几条 value_qualified。</pre>
         </div>
@@ -589,7 +588,7 @@ e:/path/to/qualoop
 参考 @tools/qualoop/METHODOLOGY.md §1.4.2。不要宣布「系统健康无需修改」。</pre>
         </div>
 
-        <h3>话术 4 · 只改高分 Issue（L3，慎用）</h3>
+        <h3>话术 4 · 只改高分 Issue（慎用）</h3>
         <div class="prompt">
           <span class="prompt-label">复制整段到 Cursor 聊天框</span>
           <pre class="code prompt-body">仅处理 automation/issues.json 里 value_qualified=true 且已分配的 Issue。
@@ -849,12 +848,12 @@ e:/path/to/qualoop
                   <span class="td-time">2026-05-22 18:33</span>
                 </td>
                 <td>
-                  <strong>L3 级成熟度适配、守护进程保活与多角色大模型驱动</strong>
+                  <strong>全自动闭环适配、守护进程保活与多角色大模型驱动</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    解决 Windows 系统下跨平台路径锁与租约适配缺陷（QL-001至QL-007）；升级到 L3 成熟度时支持在终端后台自动拉起 Guardian 守护进程（<code>start.bat</code>）以实现 24 小时常驻运行；全面接入本地 Antigravity 大模型驱动五角色，大幅提升自动化诊断与修复决策质量。
+                    解决 Windows 系统下跨平台路径锁与租约适配缺陷（QL-001至QL-007）；支持在终端后台自动拉起 Guardian 守护进程（<code>start.bat</code>）以实现 24 小时常驻运行；全面接入本地 Antigravity 大模型驱动五角色，大幅提升自动化诊断与修复决策质量。
                   </div>
                   <div class="table-tags">
-                    <span>L3-Compliance</span><span>Guardian</span><span>Antigravity-LLM</span><span>start.bat</span>
+                    <span>Autonomous-Compliance</span><span>Guardian</span><span>Antigravity-LLM</span><span>start.bat</span>
                   </div>
                 </td>
                 <td>
@@ -905,7 +904,7 @@ e:/path/to/qualoop
                 <td>
                   <strong>核心缺陷修复与调度链路元数据对齐 (Critical Debug & Stability)</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    彻底解决 <code>qualoop check</code> 后 Scorer 评分未即时持久化到 issues.json 的缺陷，确保每轮检查结果的即时落库；修正 Scheduler 路径过滤时对 <code>value_qualified</code> 的嵌套读取路径（从 <code>metadata</code> 中正确解包），消除 L3 自动分派和执行阶段的安全隐患。
+                    彻底解决 <code>qualoop check</code> 后 Scorer 评分未即时持久化到 issues.json 的缺陷，确保每轮检查结果的即时落库；修正 Scheduler 路径过滤时对 <code>value_qualified</code> 的嵌套读取路径（从 <code>metadata</code> 中正确解包），消除自动分派和执行阶段的安全隐患。
                   </div>
                   <div class="table-tags">
                     <span>Bug-Fix</span><span>State-Persistence</span><span>Scheduler-Path-Lock</span><span>Value-Qualified</span>
@@ -915,7 +914,7 @@ e:/path/to/qualoop
                   <span class="sev-badge sev-critical">严重 (90/100)</span>
                 </td>
                 <td>
-                  状态评分丢失导致合格的 Issue 无法派发；Scheduler 路径解析错误引发 L3 安全隐患，无法自动修复。
+                  状态评分丢失导致合格的 Issue 无法派发；Scheduler 路径解析错误引发安全隐患，无法自动修复。
                 </td>
                 <td>
                   <span class="status-badge status-yes">已解决</span>
@@ -962,7 +961,7 @@ e:/path/to/qualoop
                     在 Qualoop 所有自动化运行脚本中注入 sys.path 解析与绝对导入升级，确保可直接在任意目录运行；全面修复 ParadigmLearn 前后端（含 app.py 核心、多语言 setup_i18n、各 JS 及 HTML 文件）多处拼写腐化，恢复正常系统运行与文件上传验证。
                   </div>
                   <div class="table-tags">
-                    <span>L1-Observe</span><span>Spelling-Correction</span><span>sys.path-Injection</span><span>Robustness</span>
+                    <span>Observe-Only</span><span>Spelling-Correction</span><span>sys.path-Injection</span><span>Robustness</span>
                   </div>
                 </td>
                 <td>
@@ -986,7 +985,7 @@ e:/path/to/qualoop
                 <td>
                   <strong>Planner 与 Scheduler 逻辑校准、Tester 缺陷上报增强与组件编码声明</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    优化 Planner 机制确保大模型生成的里程碑 Issue 评分能在 IssueStore 中即时持久化；修正 Scheduler 嵌套读取 value_qualified 的元数据结构路径，规避 L3 自动分派与执行的安全隐患；增强 Tester 逻辑以捕获 py_compile 超时/错误及缺失关键 app.py 的重大异常并实时写入台账；为 scheduler.py 与 tester.py 补充 coding declaration，全方位提高系统健壮性。
+                    优化 Planner 机制确保大模型生成的里程碑 Issue 评分能在 IssueStore 中即时持久化；修正 Scheduler 嵌套读取 value_qualified 的元数据结构路径，规避自动分派与执行的安全隐患；增强 Tester 逻辑以捕获 py_compile 超时/错误及缺失关键 app.py 的重大异常并实时写入台账；为 scheduler.py 与 tester.py 补充 coding declaration，全方位提高系统健壮性。
                   </div>
                   <div class="table-tags">
                     <span>Planner-Fix</span><span>Scheduler-Lock</span><span>Tester-Reporting</span><span>Coding-Decl</span>
@@ -996,7 +995,7 @@ e:/path/to/qualoop
                   <span class="sev-badge sev-critical">严重 (95/100)</span>
                 </td>
                 <td>
-                  任务分配器结构读取错误，L3 自动执行链路断裂；代码编译异常无法追踪上报。
+                  任务分配器结构读取错误，自动执行链路断裂；代码编译异常无法追踪上报。
                 </td>
                 <td>
                   <span class="status-badge status-yes">已解决</span>
@@ -1067,7 +1066,7 @@ e:/path/to/qualoop
                 <td>
                   <strong>修复 Python datetime.utcnow 废弃警告以提高控制台输出纯净度</strong>
                   <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
-                    全面扫描并修改 Qualoop L1 运行链（包括 `qualoop.py`、`planner.py`、`reports.py` 和 `scorer.py`），将所有已废弃的 `datetime.utcnow()` 替换为时区感知的 `datetime.now(timezone.utc)`，避免控制台产生冗余的 API 弃用警告日志。
+                    全面扫描并修改 Qualoop 核心运行链（包括 `qualoop.py`、`planner.py`、`reports.py` 和 `scorer.py`），将所有已废弃的 `datetime.utcnow()` 替换为时区感知的 `datetime.now(timezone.utc)`，避免控制台产生冗余的 API 弃用警告日志。
                   </div>
                   <div class="table-tags">
                     <span>Deprecation-Fix</span><span>Datetime-TZ</span><span>Console-Cleanliness</span>
@@ -1190,7 +1189,7 @@ e:/path/to/qualoop
         <div class="cards">
           <div class="card"><h4>Tester</h4><p>多渠道 discovery，写入 Issue Store，产出候选意见。</p></div>
           <div class="card"><h4>Scorer</h4><p>唯一写入 value_score*；判定 value_qualified；低分触发加深。</p></div>
-          <div class="card"><h4>Scheduler</h4><p>唯一分配写入者；L2+ 仅分派合格 Issue；path lock + lease。</p></div>
+          <div class="card"><h4>Scheduler</h4><p>唯一分配写入者；仅分派通过 Scorer 评估的合格 Issue；path lock + lease。</p></div>
           <div class="card"><h4>Executors</h4><p>有界执行：fixer、improver、verifier；策略表约束 auto-fix。</p></div>
           <div class="card"><h4>Guardian</h4><p>子进程监督、退避重启、报告快照。</p></div>
           <div class="card"><h4>Issue Store</h4><p>中心化台账，串联发现→评分→分派→验证全链路。</p></div>
@@ -1228,23 +1227,6 @@ e:/path/to/qualoop
 ├── <span class="dir">references/</span>  glossary.md
 ├── <span class="dir">reports/</span>      development-report.html
 └── <span class="dir">templates/</span>    config, schema, scorer_*, guardian_*</pre>
-      </section>
-
-      <section id="maturity">
-        <h2>成熟度模型（采纳路径）</h2>
-        <table>
-          <thead>
-            <tr><th>级别</th><th>名称</th><th>能力摘要</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>L0</td><td>Manual</td><td>人工跟踪</td></tr>
-            <tr><td>L1</td><td>Observe</td><td>Tester + Scorer + Store + 报告</td></tr>
-            <tr><td>L2</td><td>Coordinate</td><td>+ Scheduler（仅分派 value_qualified）</td></tr>
-            <tr><td>L3</td><td>Bounded execute</td><td>+ fixer / verifier，明确 auto-fix 边界</td></tr>
-            <tr><td>L4</td><td>Continuous improvement</td><td>+ improver、CI 同步、指标调参（规划）</td></tr>
-          </tbody>
-        </table>
-        <p>建议大多数团队先稳定 <strong>L1–L2</strong>，再开启 Executor 自动改代码。</p>
       </section>
 
       <section id="metrics">
