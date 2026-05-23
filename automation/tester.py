@@ -986,10 +986,71 @@ def check_qualoop_self_upgrade(
     """
     created = 0
     report_file = project_root / "reports" / "development-report.html"
-    
-    # Only enforce if we are in the Qualoop source repository (or development-report.html exists)
+    # Determine if we are in the Qualoop source repository (via git remote or folder name)
+    is_qualoop_repo = False
+    try:
+        if project_root.name.lower() == "qualoop":
+            is_qualoop_repo = True
+        else:
+            remote_proc = subprocess.run(
+                ["git", "remote", "-v"],
+                cwd=str(project_root),
+                capture_output=True,
+                text=True,
+                timeout=5,
+                encoding="utf-8",
+                errors="replace"
+            )
+            if remote_proc.returncode == 0 and "qualoop" in remote_proc.stdout.lower():
+                is_qualoop_repo = True
+    except Exception:
+        pass
+
+    # If we are in the Qualoop source repository, the report file is required to exist.
+    # If not in the Qualoop repo and the report file does not exist, we can skip the checks.
     if not report_file.is_file():
-        return 0
+        if is_qualoop_repo:
+            # Check if any automation files are modified
+            modified_files = []
+            try:
+                proc = subprocess.run(
+                    ["git", "status", "--porcelain"],
+                    cwd=str(project_root),
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    encoding="utf-8",
+                    errors="replace"
+                )
+                if proc.returncode == 0:
+                    for line in proc.stdout.splitlines():
+                        parts = line.strip().split(maxsplit=1)
+                        if len(parts) >= 2:
+                            filename = parts[1]
+                            if filename.startswith("automation/") and filename.endswith(".py"):
+                                modified_files.append(filename)
+            except Exception:
+                pass
+            
+            if modified_files:
+                findings.add(
+                    "qualoop_upgrade_record",
+                    "Qualoop 自我升级记录校验",
+                    "fail",
+                    f"在 Qualoop 仓库中修改了框架组件 {', '.join(modified_files)}，但报告文件 reports/development-report.html 不存在，自动更新失败",
+                )
+                created += _maybe_add_issue(
+                    store,
+                    severity="medium",
+                    issue_type="compliance",
+                    description=(
+                        "Qualoop self-upgrade rule violation: Qualoop framework code has been modified "
+                        f"({', '.join(modified_files)}), but the report file `reports/development-report.html` "
+                        "does not exist. Every Qualoop upgrade must be documented."
+                    ),
+                    paths=["reports/development-report.html"] + modified_files,
+                )
+        return created
 
     try:
         # Run git status to see modified files
@@ -1362,7 +1423,7 @@ def check_ultimate_goals_gap_analysis(
         })
 
     # 5. Cognitive LLM Gap Audit
-    from .llm_client import call_antigravity_llm, get_llm_config
+    from automation.llm_client import call_antigravity_llm, get_llm_config
     llm_cfg = get_llm_config(project_root)
     
     if llm_cfg.get("enabled", True):
@@ -1553,7 +1614,7 @@ def check_llm_fullstack_audit(
     )
     
     try:
-        from .llm_client import call_antigravity_llm, get_llm_config
+        from automation.llm_client import call_antigravity_llm, get_llm_config
         llm_cfg = get_llm_config(project_root)
         model = llm_cfg.get("model", "flash")
         
