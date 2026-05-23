@@ -360,6 +360,7 @@
           <li><a href="#round17" class="nav-link">R17: smolagents / OpenHands / Pydantic AI</a></li>
           <li><a href="#round18" class="nav-link">R18: LangGraph / AutoGen / smolagents</a></li>
           <li><a href="#round19" class="nav-link">R19: E2B / browser-use / LlamaIndex</a></li>
+          <li><a href="#round20" class="nav-link">R20: LlamaIndex / AutoGen / OpenHands</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -740,6 +741,25 @@
         </div>
       </section>
 
+            <!-- Round 20 (26th Research) -->
+      <section id="round20">
+        <h2>R20：全局上下文共享与语义检索、Protobuf 消息契约与 Pexpect 交互式终端 (LlamaIndex & AutoGen & OpenHands)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 OpenHands 的记忆与交互通道设计</span>
+              <span class="product-meta">Hierarchical Context memory, Protobuf serialization & Pty watchdogs</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 全局分层上下文与动态语义检索 (Semantic Context)</strong>：提供分层 context 状态共享，并支持当发生异常或任务中断时，自动对错误信息进行向量化并在内存向量库中检索相似修复案例进行按需注入。</li>
+              <li><strong>AutoGen v0.4 · Protobuf 强类型契约与动态反序列化验证 (Protobuf Validation)</strong>：基于 `.proto` 定义强类型多语言消息契约，并通过 gRPC 接收端的强校验边界（Validation Barrier）动态过滤非确定性 LLM 脏数据。</li>
+              <li><strong>OpenHands · Pexpect 伪终端挂载与三级超时看门狗 (Pty & Watchdogs)</strong>：通过 `pexpect` 库在容器中建立 Pty 伪终端自动应答控制台提示，结合三级超时熔断看门狗强制 SIGKILL 死循环任务，防止宿主机资源耗尽。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -816,9 +836,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:13:52 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:14:32 UTC</strong>.
         </div>
+        
         
         
         
