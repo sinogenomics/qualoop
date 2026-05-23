@@ -377,6 +377,7 @@
           <li><a href="#round34" class="nav-link">R34: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round35" class="nav-link">R35: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round36" class="nav-link">R36: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round37" class="nav-link">R37: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1080,6 +1081,25 @@
         </div>
       </section>
 
+            <!-- Round 37 (43rd Research) -->
+      <section id="round37">
+        <h2>R37：自适应超时等待重试、Actor 邮箱幂等去重与 CDP 布局抖动性能剖析 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的超时弹性与消息时序</span>
+              <span class="product-meta">Adaptive latency, UUID deduplication & CDP layout shifts</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 自适应超时阈值放大与协程中断状态热复原 (Latency Scaling)</strong>：根据历史耗时基准动态平滑扩展超时阈值，并在不可避免的强打断前提取局部变量以发射挂起事件供异地接续。</li>
+              <li><strong>AutoGen v0.4 · 邮箱 UUID 滑动哈希去重与逻辑时钟序列重排 (Mailbox Deduplication)</strong>：前置滑动 UUID 哈希指纹表拦截冗余重传指令保障操作幂等，结合逻辑时钟对乱序到达的包在邮箱缓冲区重排。</li>
+              <li><strong>browser-use · CDP 物理布局抖动（CLS）分析与动态组件活性感知 (CLS Auditor)</strong>：劫持 CDP Performance 域分析累计布局偏移以防范视觉定位漂移，监测 DOM 刷新频率和渲染 FPS 确保稳定后再交互。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1173,9 +1193,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:27:05 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:27:57 UTC</strong>.
         </div>
+        
         
         
         
