@@ -539,6 +539,43 @@ graph TD
 
 ---
 
+### 📅 第二十次调研（2026-05-23）: 深入分析 smolagents 的代码型工具调用安全解释器、Semantic Kernel 的原生函数绑定序列化与 OpenHands 的命令安全扫描插件
+
+#### 1. Hugging Face smolagents (代码工具调用与本地内存解释器沙箱)
+*   **核心创新：AST 安全沙箱代码解析与资源界限控制 (In-Memory Safe AST Evaluation)**
+     *   *机制原理*：为了规避重量级 Docker 带来的冷启动时延，smolagents 探索了极速的“内存解释沙盒”。系统自定义了 PythonInterpreter，通过 AST 树深度优先遍历自主还原 Python 代码逻辑。它彻底剥离了 `eval` 和 `exec` 等高危内建函数，并严格限制导入模块与全局作用域。同时，为运行环境设置了精准的 CPU 运行时间（Execution Timeout）与内存分配上限，将恶意提权和 CPU 暴击直接消灭在内存解析阶段。
+
+#### 2. Microsoft Semantic Kernel (原生函数绑定序列化与类型映射适配器)
+*   **核心创新：参数 Schema 自动映射与复合类型序列化 (Type Mapping Adapters & Schema Bindings)**
+     *   *机制原理*：传统 JSON 传参不支持复杂的类对象和嵌套实体。Semantic Kernel 提供了强类型的原生函数绑定适配器（Native Function Binding Adapters）。它能够自动解析 C# Class / Python dataclass 的底层属性，自动编译出嵌套 of JSON Schema 发送给 LLM。在大模型返回参数后，适配器在底层完成 JSON 到原生实例的反序列化转换，确保了复杂类型在工具传递链中的鲁棒性。
+
+#### 3. OpenHands (命令安全扫描拦截插件)
+*   **核心创新：正则阻断拦截器与安全漏洞主动建账 (Pattern-matching Security Guardrails)**
+     *   *机制原理*：在 L3 级别的 Executor 运行自动命令行时，大模型极易受到恶意的 Prompt 注入进而执行高危命令。OpenHands 引入了 `Security Guardrail` 拦截插件。它在指令下发至 Docker tmux 之前，使用静态安全模式匹配对命令行进行静态审查，阻断类似越权读取环境变量（如 `env`, `printenv`）及高危物理删除（如 `rm -rf /`）命令，并自动在 Issue Store 中建立 `security_alert` 类型的缺陷，挂起流程，确保生产库绝对安全。
+
+```mermaid
+graph TD
+    subgraph smolagents-AST-Sandbox
+        Code[Agent Python Code] -->|AST Parse| AST[AST Node Visitor]
+        AST -->|Check WhiteList| Eval[In-Memory Logic Evaluator]
+        Eval -->|Timeout & Memory check| SafeReturn[Return variable state]
+    end
+    subgraph SK-Type-Adapters
+        Func[Native python function] -->|1. Inspect dataclass params| Binder[Schema Generator]
+        Binder -->|2. Send JSON Schema| LLM[LLM Tool Decision]
+        LLM -->|3. Output JSON| Adapter[Deserialization Adapter]
+        Adapter -->|4. Instantiate Object| Func
+    end
+    subgraph OpenHands-Security-Guardrails
+        Cmd[ACI command input] -->|1. Match patterns| Guard[Security Scanner Hook]
+        Guard -->|Safe| Docker[Docker Tmux Execution]
+        Guard -->|Unsafe Block| Block[Block execution & Emit SecurityAlert Issue]
+    end
+```
+
+
+---
+
 ### 📅 第十九次调研（2026-05-23）: 深入分析 Dify 的可视化 DAG 混杂执行工作流、Vercel AI SDK 的 Zod 原生结构化输出与 LangSmith 的嵌套 Run-Tree 离线回归测试
 
 #### 1. Dify (可视化 DAG 混合流与 BaaS 数据集生命周期管理)

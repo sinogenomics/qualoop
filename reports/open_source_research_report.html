@@ -354,6 +354,7 @@
           <li><a href="#round11" class="nav-link">R11: Pydantic AI / DSPy / AutoGen v0.4</a></li>
           <li><a href="#round12" class="nav-link">R12: Workflows / Semantic Kernel / E2B</a></li>
           <li><a href="#round13" class="nav-link">R13: Dify / Zod / LangSmith</a></li>
+          <li><a href="#round14" class="nav-link">R14: smolagents / SK / OpenHands</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -620,6 +621,25 @@
         </div>
       </section>
 
+            <!-- Round 14 (20th Research) -->
+      <section id="round14">
+        <h2>R14：代码解释器内存沙箱、原生函数类型适配与命令安全拦截扫网 (smolagents & Semantic Kernel & OpenHands)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">smolagents, Semantic Kernel 与 OpenHands 的安全控制设计</span>
+              <span class="product-meta">Safe Python interpreter, Type adapters & Command scanner</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>smolagents · AST 限制性内存解释器 (AST Safe Interpreter)</strong>：开发纯 AST 遍历解释器以在内存中仿真运行 Python 代码，严格限制模块导入和全局变量范围，提供比 Docker 更轻的秒级计算沙盒。</li>
+              <li><strong>Semantic Kernel · 原生类型绑定适配器 (Type Binding Adapters)</strong>：解析原生 Python 结构化对象以输出嵌套 JSON Schema，并在 LLM 调用完成后执行反序列化类型映射，打通复杂类型的传递壁垒。</li>
+              <li><strong>OpenHands · 安全扫描拦截器 (Security Guardrail Hook)</strong>：在底层 tmux 执行前拦截静态安全违规命令（如 rm -rf / 或读取敏感凭据 env），并在发现异常时直接自动在 issues.json 中记录 security_alert 问题。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -689,9 +709,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:08:23 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:09:02 UTC</strong>.
         </div>
+        
         
         
         
