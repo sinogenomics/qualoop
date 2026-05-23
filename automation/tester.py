@@ -1608,6 +1608,25 @@ def check_ultimate_goals_gap_analysis(
             "description": "最终项目目标为生成高质量、启发性的 K-12 学习资源（脑图、信息图、音频）。然而，当前代码中缺乏精细设计的动态大模型 Prompt 模板或系统指令（System Prompts），大模型交互存在盲区，可能生成质量低劣的内容。"
         })
 
+    # Gap D: Missing NotebookLM Online Preview Validation
+    if "notebooklm" in goals_text.lower() and ("验证" in goals_text or "打开/预览" in goals_text or "预览" in goals_text):
+        preview_validation_found = False
+        validation_keywords = [
+            "verify_preview", "check_preview", "notebooklm_preview", "preview_validation",
+            "verify_notebook_preview", "validate_online_preview", "check_online_preview"
+        ]
+        for code in impl_data.values():
+            if any(vk in code.lower() for vk in validation_keywords):
+                preview_validation_found = True
+                break
+        if not preview_validation_found:
+            gaps_found.append({
+                "type": "notebooklm_online_validation",
+                "severity": "critical",
+                "title": "缺少 NotebookLM 线上预览与打开状态验证机制 (Missing NotebookLM Online Preview Validation)",
+                "description": "系统在 NotebookLM 生成学习材料后，并未在 notebooklm.google.com 网站内对生成的音频、视频、文档等进行线上预览或打开状态的模拟校验。为满足 GOALS.md 的核心要求，需要在后端/自动化层引入浏览器自动化（如 Playwright 或 Puppeteer）脚本，登录 notebooklm.google.com 后模拟点击各生成资源并确认能正常打开与渲染，之后方可在本系统前端标记‘已完成’。"
+            })
+
     # 5. Cognitive LLM Gap Audit
     from automation.llm_client import call_antigravity_llm, get_llm_config
     llm_cfg = get_llm_config(project_root)
