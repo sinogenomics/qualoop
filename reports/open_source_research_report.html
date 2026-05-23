@@ -335,6 +335,7 @@
           <li><a href="#round5" class="nav-link">R5: LangGraph / CrewAI</a></li>
           <li><a href="#round6" class="nav-link">R6: Pydantic AI / Tracing</a></li>
           <li><a href="#round7" class="nav-link">R7: browser-use / OpenHands</a></li>
+          <li><a href="#round8" class="nav-link">R8: Semantic Kernel / Langfuse</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -354,8 +355,8 @@
         </p>
         <div class="meta-row">
           <span class="pill"><strong>进化模式</strong> 完全自主进化</span>
-          <span class="pill"><strong>扫描框架数</strong> 16 个</span>
-          <span class="pill"><strong>最新状态</strong> 7 轮调研归档已完成</span>
+          <span class="pill"><strong>扫描框架数</strong> 18 个</span>
+          <span class="pill"><strong>最新状态</strong> 8 轮调研归档已完成</span>
         </div>
       </header>
 
@@ -487,6 +488,24 @@
         </div>
       </section>
 
+      <!-- Round 8 -->
+      <section id="round8">
+        <h2>R8：动态计划器与自动化智能体评估 (Semantic Kernel & Langfuse Evals)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Microsoft Semantic Kernel 与 Langfuse LLM-as-a-judge</span>
+              <span class="product-meta">Stepwise Planner & LLM-as-a-judge</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>Semantic Kernel · Stepwise Planner (逐步计划器)</strong>：基于 MRKL 架构与原生大模型函数调用（Function Calling）能力。相较于静态流程定义，逐步计划器会在运行期动态分析当前拥有的插件（Plugins）与工具列表，在每个 Thought -> Action -> Observation 步骤中自主决定下一个要调用的工具，并对中间结果进行持续评估，直至产出 `final_answer`。这为自动修复的多工具链组合提供了极高灵活性。</li>
+              <li><strong>Langfuse · LLM-as-a-judge 自动化指标审计</strong>：提供了对非确定性 Agent 执行轨迹（Trajectories）的自动化评估机制。利用更强的 LLM 充当“裁判模型”，基于定制的打分量表（Rubrics）对智能体的执行链路（如“工具选择是否正确”、“回答是否基于观测事实”、“是否对齐 North Star”）进行自动化打分并直接持久化到链路追踪 Trace 中，解决了多智能体在大规模并发下由于缺乏反馈机制导致的“无声腐化”痛点。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <!-- Comparison Matrix -->
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
@@ -499,7 +518,7 @@
                 <th>Aider / Mentat</th>
                 <th>Devin / OpenHands</th>
                 <th>MetaGPT / Swarm</th>
-                <th>smolagents / Pydantic AI</th>
+                <th>smolagents / SK / Langfuse</th>
               </tr>
             </thead>
             <tbody>
@@ -517,7 +536,15 @@
                 <td>本地 Git 自动 Savepoint / 撤销</td>
                 <td>硬隔离 Docker 容器安全沙盒</td>
                 <td>隔离的可执行测试反馈环境</td>
-                <td>安全受限的本地 Python 解释器空间</td>
+                <td>安全受限的本地 Python 解释器空间和插件内核</td>
+              </tr>
+              <tr>
+                <td><strong>评估与观测调试</strong></td>
+                <td>局部 Issues.jsonl 文件与 Scorer 人工评测分值</td>
+                <td>AST 静态编译与运行期 Lint 输出</td>
+                <td>Devin Web 运行终端可视化回放</td>
+                <td>SOP 控制产物，无原生评估链路</td>
+                <td>Langfuse LLM-as-a-judge 指标自动化追踪评估</td>
               </tr>
               <tr>
                 <td><strong>交付机制</strong></td>
