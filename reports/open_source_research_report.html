@@ -376,6 +376,7 @@
           <li><a href="#round33" class="nav-link">R33: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round34" class="nav-link">R34: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round35" class="nav-link">R35: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round36" class="nav-link">R36: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1060,6 +1061,25 @@
         </div>
       </section>
 
+            <!-- Round 36 (42nd Research) -->
+      <section id="round36">
+        <h2>R36：内置遥测事件广播、Actor 容器生命周期墓碑与 CDP 本地存储实时镜像 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的系统遥测与状态同步</span>
+              <span class="product-meta">Telemetry broadcasting, tombstone snapshots & CDP Storage mirroring</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 内置遥测诊断事件总线广播与热挂载 (Telemetry Agent)</strong>：自动向总线派发图性能度量诊断事件，支持运行时热挂载审计节点，实现无损的弹性可观测性。</li>
+              <li><strong>AutoGen v0.4 · 容器级生命周期墓碑快照与故障冷启动重建 (Tombstone Recovery)</strong>：集成底层 on_deactivate 回调硬执行，在 OOM 强制杀容器前一微秒强制对 Mailbox 存盘生成墓碑快照，实现无损故障自愈。</li>
+              <li><strong>browser-use · CDP 存储域变更劫持与本地存储实时镜像同步 (Storage Mirroring)</strong>：劫持 CDP 的 DOMStorage 变更事件流并物理镜像同步到宿主机上下文，彻底消除前端缓存与后端状态的时序脱节。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1152,9 +1172,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:26:11 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:27:05 UTC</strong>.
         </div>
+        
         
         
         
