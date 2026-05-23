@@ -365,6 +365,7 @@
           <li><a href="#round22" class="nav-link">R22: smolagents / AutoGen / browser-use</a></li>
           <li><a href="#round23" class="nav-link">R23: LlamaIndex / smolagents / E2B</a></li>
           <li><a href="#round24" class="nav-link">R24: LlamaIndex / AutoGen / E2B</a></li>
+          <li><a href="#round25" class="nav-link">R25: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -840,6 +841,25 @@
         </div>
       </section>
 
+            <!-- Round 25 (31st Research) -->
+      <section id="round25">
+        <h2>R25：嵌套子工作流事件隔离、分布式邮箱背压流控与跨 boundaries 页面定位 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的层级结构与传输流控</span>
+              <span class="product-meta">Nested sub-workflows, ACK/NACK backpressure & deep iframe piercing</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 嵌套子图挂载与父子事件冒泡 (Nested Workflows)</strong>：支持将子 Workflow 作为父 Workflow 的独立步骤运行，并在子图间实施分层事件隔离与选择性事件冒泡拦截，理清复杂消息关系。</li>
+              <li><strong>AutoGen v0.4 · 消息确认重传与滑动窗口背压 (Flow Control)</strong>：实现应用层 ACK/NACK 保证至少一次传递，并通过接收端 Mailbox 溢出水位线触发的 Pause/Resume 信号提供弹性背压控制。</li>
+              <li><strong>browser-use · 跨 iframe 通讯网桥与 Shadow DOM 穿透 (DOM Piercing)</strong>：向所有子 iframe 自动注入通讯网桥计算物理视口偏移，并利用影子 DOM 树穿透选择器（`>>>`）标注内部交互节点。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -921,9 +941,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:17:10 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:17:57 UTC</strong>.
         </div>
+        
         
         
         
