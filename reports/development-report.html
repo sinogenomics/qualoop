@@ -601,6 +601,32 @@ e:/path/to/qualoop
         <table>
           <thead><tr><th>建议说</th><th>不要说</th></tr></thead>
           <tbody>
+            <tr><td>按 Qualoop 跑一轮检查</td><td>帮我看看有没有 bug</td></tr>
+            <tr><td>加深检查直到 value_qualified</td><td>随便 review 一下</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout warn" style="margin-top:1rem">
+          <strong>工程细节</strong>：目录结构、CI、验收表见 <a href="../ADOPTION_GUIDE.md">ADOPTION_GUIDE.md</a>。
+        </div>
+      </section>
+
+            <section id="timeline">
+        <h2>开发历程</h2>
+        <p>汇总与梳理本仓库在迭代与升级中形成的关键里程碑（方法论演进，非业务代码发布）。</p>
+        <div style="overflow-x: auto;">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th style="width: 14%; min-width: 110px;">阶段 / 时间</th>
+                <th style="width: 25%; min-width: 200px;">升级里程碑</th>
+                <th style="width: 12%; min-width: 100px;">严重程度评价</th>
+                <th style="width: 25%; min-width: 200px;">存在该问题的影响</th>
+                <th style="width: 12%; min-width: 90px;">是否已解决</th>
+                <th style="width: 12%; min-width: 90px;">是否推送 GitHub</th>
+              </tr>
+            </thead>
+            <tbody>
               <tr>
                 <td>
                   <span class="stage-num">阶段 18</span>
@@ -619,7 +645,7 @@ e:/path/to/qualoop
                   <span class="sev-badge sev-medium">中 (50/100)</span>
                 </td>
                 <td>
-                  如果未进行此优化，Qualoop 将会保留冗余的历史分级检测机制，增加系统认知和运行时编排开销。
+                  如果未进行此优化，Qualoop 将会保留冗余的历史分级检测机制，增加系统认知 and 运行时编排开销。
                 </td>
                 <td>
                   <span class="status-badge status-yes">已解决</span>
@@ -628,9 +654,7 @@ e:/path/to/qualoop
                   <span class="status-badge status-yes">已推送</span>
                 </td>
               </tr>
-            <tr><td>按 Qualoop 跑一轮检查</td><td>帮我看看有没有 bug</td></tr>
-            <tr><td>加深检查直到 value_qualified</td><td>随便 review 一下</td></tr>
-            <tr>
+              <tr>
                 <td>
                   <span class="stage-num">阶段 17</span>
                   <span class="td-time">2026-05-23 09:03 HKT</span>
@@ -657,30 +681,6 @@ e:/path/to/qualoop
                   <span class="status-badge status-no">未推送</span>
                 </td>
               </tr>
-            </tbody>
-        </table>
-
-        <div class="callout warn" style="margin-top:1rem">
-          <strong>工程细节</strong>：目录结构、CI、验收表见 <a href="../ADOPTION_GUIDE.md">ADOPTION_GUIDE.md</a>。
-        </div>
-      </section>
-
-            <section id="timeline">
-        <h2>开发历程</h2>
-        <p>汇总与梳理本仓库在迭代与升级中形成的关键里程碑（方法论演进，非业务代码发布）。</p>
-        <div style="overflow-x: auto;">
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th style="width: 14%; min-width: 110px;">阶段 / 时间</th>
-                <th style="width: 25%; min-width: 200px;">升级里程碑</th>
-                <th style="width: 12%; min-width: 100px;">严重程度评价</th>
-                <th style="width: 25%; min-width: 200px;">存在该问题的影响</th>
-                <th style="width: 12%; min-width: 90px;">是否已解决</th>
-                <th style="width: 12%; min-width: 90px;">是否推送 GitHub</th>
-              </tr>
-            </thead>
-            <tbody>
               <tr>
                 <td>
                   <span class="stage-num">阶段 0</span>

@@ -953,10 +953,15 @@ def auto_update_development_report(project_root: Path, modified_files: list[str]
             f"              </tr>\n"
         )
         
-        # 5. Insert row immediately after <tbody>
-        tbody_pos = content.find("<tbody>")
+        # 5. Insert row immediately after the <tbody> inside class="history-table"
+        table_pos = content.find('<table class="history-table">')
+        if table_pos == -1:
+            logger.warning("Could not find <table class=\"history-table\"> tag in development-report.html")
+            return False
+            
+        tbody_pos = content.find("<tbody>", table_pos)
         if tbody_pos == -1:
-            logger.warning("Could not find <tbody> tag in development-report.html")
+            logger.warning("Could not find <tbody> tag inside history-table in development-report.html")
             return False
             
         insert_idx = tbody_pos + len("<tbody>\n")
