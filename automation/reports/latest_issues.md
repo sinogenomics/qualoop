@@ -1,20 +1,48 @@
-# ParadigmLearn Automation — Latest Issues
+# Qualoop — Latest issues
 
-_Generated: 2026-05-23T01:03:49.331596+00:00_
+Generated: `2026-05-23T01:13:01.456411Z`  
+Round: `pass_20260523_011301`  
+Qualified this round: **1** (max score: 80)
 
-**Open / active count:** 1
+---
 
-| Severity | Type | Status | Executor | Description |
-|----------|------|--------|----------|-------------|
-| medium | compliance | open | - | Qualoop self-upgrade content check failed: Modified files (automation/tester.py) are not referenced in the added descrip |
+## Needs human
 
-## Details
+Issues that require a person (`open` + `requires_human`, or `wontfix` + `terminal_reason: human_required`).
 
-### `b80ccf1c…` — compliance
 
-- **Severity:** medium
-- **Status:** open
-- **Executor:** (unassigned)
-- **Paths:** automation/tester.py, reports/development-report.html
+No issues require human intervention at this moment.
 
-Qualoop self-upgrade content check failed: Modified files (automation/tester.py) are not referenced in the added description of `reports/development-report.html`. Please ensure the report update description explicitly mentions: tester.
+
+---
+
+## Open / assigned
+
+
+No open automated/assigned tasks.
+
+
+---
+
+## Resolved
+
+
+- **[MEDIUM]** Qualoop self-upgrade content check failed: Modified files (automation/tester.py) are not referenced in the added description of `reports/development-report.html`. Please ensure the report update description explicitly mentions: tester. (fingerprint: `cd202a6ee11068fc`)
+  - Affected paths: `automation/tester.py`, `reports/development-report.html` | Status: `resolved` | Score: **80** (Qualified)
+  - Scorer Rationale: *Alignment verified deterministically. | Medium observability. | Standard coordination. | Standard verifiable channel. | Standard safety profile. | Standard durability.*
+
+
+
+---
+
+## Closed / abandoned
+
+`wontfix` / `duplicate` where **no** human action is expected (`terminal_reason` ≠ `human_required`).
+
+
+No closed or abandoned issues.
+
+
+---
+
+*Do not list all `wontfix` under "Needs human". See METHODOLOGY §3.1 and issue schema `metadata.terminal_reason`.*
