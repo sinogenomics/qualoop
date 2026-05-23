@@ -1159,6 +1159,96 @@ def check_qualoop_self_upgrade(
     except Exception as e:
         logger.warning("Failed to run Qualoop self-upgrade check: %s", e)
         
+def check_semantic_standards_alignment(
+    project_root: Path, store: IssueStore, findings: RoundFindings, logger
+) -> int:
+    """Goals Alignment Validator: Enforces that the automated test suite checks
+    not just format headers but also strict minimum physical body size thresholds (semantic content).
+    Prevents empty mock placeholder bypasses.
+    """
+    created = 0
+    # 1. Locate GOALS.md
+    goals_file = project_root / "GOALS.md"
+    if not goals_file.is_file():
+        goals_file = project_root / "DEVELOPMENT_GOALS.md"
+    if not goals_file.is_file():
+        findings.add("semantic_alignment_skip", "目标语义对齐", "pass", "无目标文件，跳过对齐审计")
+        return 0
+
+    try:
+        goals_text = goals_file.read_text(encoding="utf-8", errors="replace")
+    except Exception as e:
+        logger.warning("Failed to read goals file: %s", e)
+        return 0
+
+    # Deliverables mapping defined in GOALS.md
+    deliverables = []
+    if "音频" in goals_text or "audio" in goals_text.lower():
+        deliverables.append("audio")
+    if "视频" in goals_text or "video" in goals_text.lower():
+        deliverables.append("video")
+    if "信息图" in goals_text or "infographic" in goals_text.lower():
+        deliverables.append("infographic")
+    if "思维导图" in goals_text or "mindmap" in goals_text.lower():
+        deliverables.append("mindmap")
+    if "ppt" in goals_text.lower() or "slides" in goals_text.lower() or "slide" in goals_text.lower():
+        deliverables.append("slides")
+
+    if not deliverables:
+        findings.add("semantic_alignment_skip", "目标语义对齐", "pass", "未识别到核心交付物定义")
+        return 0
+
+    # 2. Check the test suite files
+    test_files = ["simple_e2e_test.py", "e2e_test.py"]
+    found_assertions = {d: False for d in deliverables}
+
+    for tf_name in test_files:
+        tf_path = project_root / tf_name
+        if not tf_path.is_file():
+            continue
+        try:
+            code = tf_path.read_text(encoding="utf-8", errors="replace")
+            # Look for assertions verifying sizes (e.g. len(bytes) >= or size threshold checks)
+            for d in deliverables:
+                # Regex to find: asserts or checks that verify the length/size of downloaded deliverable
+                pattern = rf"(len\(file_bytes\)|len\(bytes\)|len\(.+\))\s*(>=|>)\s*(200|1000|2000|5000|10000|15000)"
+                if d in code and re.search(pattern, code):
+                    found_assertions[d] = True
+        except Exception as e:
+            logger.warning("Failed to read test file %s: %s", tf_name, e)
+
+    missing_semantic_tests = [d for d, found in found_assertions.items() if not found]
+
+    if not missing_semantic_tests:
+        findings.add(
+            "semantic_standards_alignment",
+            "目标交付语义对齐",
+            "pass",
+            f"所有交付物 ({', '.join(deliverables)}) 均已置入体量大小与语义实质断言",
+        )
+    else:
+        logger.warning("Goals alignment mismatch: missing size assertions for %s", missing_semantic_tests)
+        findings.add(
+            "semantic_standards_alignment",
+            "目标交付语义对齐",
+            "fail",
+            f"交付物 {', '.join(missing_semantic_tests)} 缺乏硬性大小阈值或真空 Mock 防御断言",
+            category="verification",
+        )
+        created += _maybe_add_issue(
+            store,
+            severity="critical",
+            issue_type="verification",
+            description=(
+                f"The automated test suite violates the project's North Star goals (defined in GOALS.md).\n"
+                f"It is missing strict minimum physical body size thresholds or vacuum mock protection assertions "
+                f"for the following deliverables: {', '.join(missing_semantic_tests)}.\n"
+                f"Without size thresholds, the test suite can be easily bypassed by empty/mock files (e.g. 126-byte silent audio or 1x1 empty PNGs)."
+            ),
+            paths=test_files,
+            metadata={"missing_deliverables": missing_semantic_tests},
+        )
+
     return created
 
 
@@ -1547,6 +1637,7 @@ def run_once(
         created += run_legacy_scripts(cfg, project_root, store, findings, logger)
         created += api_contract_check(project_root, store, findings, cfg, logger)
         created += check_goals_and_coverage(project_root, store, findings, logger)
+        created += check_semantic_standards_alignment(project_root, store, findings, logger)
         created += check_qualoop_self_upgrade(project_root, store, findings, logger)
         if cfg.get("tester", {}).get("llm_fullstack_audit", True):
             created += check_llm_fullstack_audit(project_root, store, findings, cfg, logger)
