@@ -72,6 +72,7 @@ _JS_CORRUPTION_MARKERS = (
 _LEGACY_SCRIPTS = (
     "automated_tester.py",
     "e2e_test.py",
+    "simple_e2e_test.py",
     "api_contract_validator.py",
 )
 
