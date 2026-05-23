@@ -539,6 +539,46 @@ graph TD
 
 ---
 
+### 📅 第二十二次调研（2026-05-23）: 深入分析 LlamaIndex Workflows 的状态快照与时间旅行恢复、AutoGen v0.4 的 Actor 生命周期治理与 E2B 的沙盒网络隔离
+
+#### 1. LlamaIndex Workflows (状态序列化持久化与时间旅行)
+*   **核心创新：流程状态快照持久化与任意节点级恢复 (Workflow State Serialization & Time-Travel Resumption)**
+     *   *机制原理*：在长周期的复杂质量修复循环中，一旦发生网络超时、API 额度瞬间耗尽或外部验证中断，整个工作流往往需要从头重新加载，造成极大的 Token 浪费。LlamaIndex Workflows 提供了完整的状态序列化（Serialization）设计。每当一个 `@step` 节点执行完毕后，全局 `Context` 状态都会被自动快照持久化存储。一旦发生致命崩溃，系统能够反序列化并自动“时间旅行（Time Travel）”恢复至上一个健康的步骤节点继续执行，显著提升了容错率。
+
+#### 2. Microsoft AutoGen v0.4 (Actor 生命周期管理与资源编排)
+*   **核心创新：动态参与者激活注销与分布式资源治理 (Actor Lifecycle & Distributed Resource Orchestration)**
+     *   *机制原理*：当多智能体并发修复大量 defects 时，如果不加限制地拉起成百上千个 Agent 进程，会瞬间撑爆服务器内存和 CPU。AutoGen v0.4 引入了规范 of Actor 生命周期管理（Lifecycle Management）。每一个 Agent 节点都被建模为带有 state 的 Actor。运行器（Runtime）可以根据当前的队列压力、事件优先级和资源占用，动态执行 Actor 的 `Activate` (激活)、`Deactivate` (挂起至磁盘) 和 `Terminate` (注销)，以极小 of 开销管理大规模分布式 Agent 集群协作。
+
+#### 3. E2B Sandboxes (私有网络命名空间隔离与零外网安全)
+*   **核心创新：网关级网络包拦截与 Host-only 沙盒配置 (Network Namespace Isolation & Data Egress Prevention)**
+     *   *机制原理*：防范恶意生成的代码外泄凭证（Data Exfiltration）或在运行期发起未授权的外网下载（越权攻击）是 L3/L4 级的关键底线。E2B 沙盒通过 Linux 网络命名空间（Net Namespace），为每个微虚拟机配置了 Host-only 隔离网卡。它可以全局切断沙盒对外部公网 of 访问路由。所有的依赖包和测试镜像均在 VM 启动前完成本地缓存。代码执行期完全断网运行，从网关和网卡层彻底规避了网络逃逸和代码越权通信的物理风险。
+
+```mermaid
+graph TD
+    subgraph LlamaIndex-Workflows-TimeTravel
+        Start[Task Trigger] --> Step1[Step 1: Check]
+        Step1 -->|Save Context Snapshot| DB[(Sqlite / PG State Store)]
+        Step1 --> Step2[Step 2: Score]
+        Step2 -->|API Timeout Crash| Recovery[Reload State Snapshot from DB]
+        Recovery -->|Time Travel Resumption| Step2
+    end
+    subgraph AutoGen-Actor-Lifecycle
+        Queue[Pending Event Queue] -->|Scale Out| Runtime[Actor Runtime]
+        Runtime -->|Activate| A1[Active Tester Actor]
+        Runtime -->|Deactivate to Disk| A2[Suspended Scorer Actor]
+        Runtime -->|Terminate| A3[Destroyed Executor Actor]
+    end
+    subgraph E2B-Network-Isolation
+        VM[Firecracker MicroVM] -->|veth interface| Bridge[Host Virtual Bridge]
+        Bridge -->|ACL Filter Rules| NetName[Host Net Namespace]
+        NetName -->|Blocked| PublicInternet((Public Internet))
+        NetName -->|Allowed| HostOnly[(Host Local Repository / Cache)]
+    end
+```
+
+
+---
+
 ### 📅 第二十一次调研（2026-05-23）: 深入分析 OpenAI Swarm 的无状态 Handoff 路由流、Pydantic AI 的结构化校验错误反馈环与 E2B 的沙盒高层文件系统 API
 
 #### 1. OpenAI Swarm (无状态 Handoff 路由流设计)

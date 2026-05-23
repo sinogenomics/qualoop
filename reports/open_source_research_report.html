@@ -356,6 +356,7 @@
           <li><a href="#round13" class="nav-link">R13: Dify / Zod / LangSmith</a></li>
           <li><a href="#round14" class="nav-link">R14: smolagents / SK / OpenHands</a></li>
           <li><a href="#round15" class="nav-link">R15: Swarm / Pydantic AI / E2B SDK</a></li>
+          <li><a href="#round16" class="nav-link">R16: Workflows / AutoGen / E2B Sandbox</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -660,6 +661,25 @@
         </div>
       </section>
 
+            <!-- Round 16 (22nd Research) -->
+      <section id="round16">
+        <h2>R16：流程状态持久化与时间旅行恢复、Actor 生命周期编排与沙盒私有网络断网安全 (Workflows & AutoGen v0.4 & E2B Sandboxes)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Workflows, AutoGen 与 E2B 的高可用及高安全性设计</span>
+              <span class="product-meta">State persistence, Actor lifecycle & Net namespace isolation</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 状态快照与时间旅行 (Workflow State Persistence)</strong>：在 `@step` 节点前后进行上下文状态序列化，保证在大规模并发修复发生致命中断时，能反序列化快照并“时间旅行”恢复执行。</li>
+              <li><strong>AutoGen v0.4 · Actor 生命周期管理 (Actor Lifecycle)</strong>：通过动态 Activate、Deactivate 和 Terminate 控制 Agent 在高并发任务流中的资源消耗，实现高可用分布式集群调度。</li>
+              <li><strong>E2B Sandboxes · 物理断网隔离 (Private Net Namespace)</strong>：使用 Linux 网络命名空间限制 microVM 外网出口路由，仅允许访问宿主机本地缓存，从网卡物理层拦截注入代码的数据外泄和非法网络请求。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -731,9 +751,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:09:45 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:10:31 UTC</strong>.
         </div>
+        
         
         
         
