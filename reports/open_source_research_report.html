@@ -351,6 +351,7 @@
           <li><a href="#round8" class="nav-link">R8: Semantic Kernel / Langfuse</a></li>
           <li><a href="#round9" class="nav-link">R9: Aider / SWE-agent / OpenHands</a></li>
           <li><a href="#round10" class="nav-link">R10: Devin / Mentat / CrewAI</a></li>
+          <li><a href="#round11" class="nav-link">R11: Pydantic AI / DSPy / AutoGen v0.4</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -560,6 +561,25 @@
         </div>
       </section>
 
+            <!-- Round 11 (17th Research) -->
+      <section id="round11">
+        <h2>R11：类型安全依赖注入、自举 CoT 提示词优化与强契约 Protobuf 事件流 (Pydantic AI & DSPy & AutoGen v0.4)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Pydantic AI、DSPy 与 AutoGen v0.4 的核心原理解析</span>
+              <span class="product-meta">RunContext[Deps], BootstrapFewShot & Protobuf Actor Contracts</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>Pydantic AI · 运行时依赖注入 (RunContext Dependency Injection)</strong>：消灭全局状态带来的数据污染与死锁。要求所有 tool 自主注入 `RunContext` 对象，实现数据库连接及 API Client 的实例级隔离。</li>
+              <li><strong>DSPy · 自举 Few-Shot 轨迹优化 (BootstrapFewShot Optimizer)</strong>：无需人工堆叠提示词。通过执行少量成功轨迹仿真，由优化器自动捕获正确的思维链与步骤并编译进最终 system prompt。</li>
+              <li><strong>AutoGen v0.4 · 强类型 Protobuf 通信契约 (Protobuf Actor Message)</strong>：放弃不稳定的非结构化文本传递，使用 Google Protobuf 强定义智能体间消息格式，保障分布式集群环境下协作的高吞吐和强一致。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -626,9 +646,11 @@
 
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:06:24 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:07:05 UTC</strong>.
         </div>
+        
         
         
         

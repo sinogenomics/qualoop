@@ -539,6 +539,42 @@ graph TD
 
 ---
 
+### 📅 第十七次调研（2026-05-23）: 深入分析 Pydantic AI 的类型安全依赖注入、DSPy 的自举少样本 prompt 编译优化与 AutoGen v0.4 的强类型 Protobuf 消息契约
+
+#### 1. Pydantic AI (类型安全的依赖注入与 RunContext[Deps] 模式)
+*   **核心创新：静态与运行时双重保障 of 依赖项安全隔离 (RunContext Dependency Injection)**
+     *   *机制原理*：在企业级复杂多任务并发中，多 Agent 容易因为共享全局数据库连接、API 凭证或物理配置引发竞争状态与泄露。Pydantic AI 提出了 `RunContext[Deps]` 依赖注入机制。所有的 Tools 不再直接从全局空间读取状态，而是被硬性要求接受一个强类型 constraints 约束的 `RunContext` 参数。依赖项在 `Agent.run(..., deps=...)` 启动时以实例级别绑定并沿调用链向下隐式传递，保证了多路并发测试和沙盒执行中运行环境的极致隔离和类型安全。
+
+#### 2. DSPy (自举少样本 BootstrapFewShot 优化器)
+*   **核心创新：多轮仿真自愈轨迹筛选与引导 (BootstrapFewShot Prompt Optimization)**
+     *   *机制原理*：传统的 Few-Shot Prompt 都是由开发者手动挑选的，在面对业务逻辑漂移时表现很差。DSPy 引入了 `BootstrapFewShot` 优化器。系统利用少量黄金种子样本（Seed Examples）在后台启动多路仿真运行。如果某次运行的输出符合评估打分函数（Metric）的设定，系统会自动捕获该运行中大模型的所有中间推理链（CoT Spans）和工具调用痕迹，并将其保存为成功轨迹案例。优化器会自适应地“自举”合成最契合目标任务的 few-shot 案例库注入到最终指令中，实现了 Prompt 的自动化生成与调优。
+
+#### 3. Microsoft AutoGen v0.4 (强类型 Protobuf 消息通信契约)
+*   **核心创新：Protobuf 强Schema 消息定义与多语言 Actor 集群通信 (Protobuf-backed Swarm Messages)**
+     *   *机制原理*：在分布式智能体网络或高并发架构中，如果智能体之间仅仅依靠非结构化的 JSON 文本进行协同，容易因为少传字段或字符解析失败导致级联崩溃。AutoGen v0.4 引入了基于 Google Protobuf 的消息传递模型。所有的角色（如 TesterActor、ScorerActor）之间发送的任务单、评估申请和修复补丁，均由 `.proto` 文件强定义（如 `IssueMessage`, `ScoreRequest`）。这保障了通信协议在微服务架构和多语言环境下的强契约兼容，也降低了网络数据包传输的 overhead。
+
+```mermaid
+graph TD
+    subgraph Pydantic-AI-Deps
+        App[Qualoop Runner] -->|Inject DepsInstance| AgentRun[Agent.run deps=Deps]
+        AgentRun -->|Resolve RunContext| ToolCall[Tool: read_db RunContext.deps]
+    end
+    subgraph DSPy-Bootstrap
+        Seed[种子样本] -->|1. Run Simulation| Model[LLM Predictor]
+        Model -->|2. Evaluate Output| Metric{Metric Score >= Threshold?}
+        Metric -->|Yes: Save Traces| Traj[(成功少样本推理痕迹)]
+        Traj -->|3. Bootstrap Compile| FinalPrompt[生成最优 CoT Few-Shot Prompt]
+    end
+    subgraph AutoGen-v0.4-Protobuf
+        ActorA[Tester Actor] -->|1. Serialize Protobuf bytes| ProtoBuf[Serialized Protobuf Message]
+        ProtoBuf -->|2. Dispatch through EventBus| ActorB[Scorer Actor]
+        ActorB -->|3. Deserialize and Validate Schema| Execution[Execute Logic]
+    end
+```
+
+
+---
+
 ### 📅 第十六次调研（2026-05-23）: 深入分析 Devin/OpenHands 运行态工作区环境快照恢复、Mentat 的语义上下文文件钉选与 CrewAI 的跨角色多维向量记忆同步
 
 #### 1. Devin/OpenHands (物理工作区运行态快照与进程挂起恢复)
