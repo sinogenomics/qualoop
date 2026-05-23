@@ -371,6 +371,7 @@
           <li><a href="#round28" class="nav-link">R28: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round29" class="nav-link">R29: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round30" class="nav-link">R30: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round31" class="nav-link">R31: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -960,6 +961,25 @@
         </div>
       </section>
 
+            <!-- Round 31 (37th Research) -->
+      <section id="round31">
+        <h2>R31：协程事件诊断度量、Actor 数据库持久化与移动端响应式模拟 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的性能分析与环境模拟</span>
+              <span class="product-meta">Event loop profiling, Actor DB snapshotting & mobile sensor emulation</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 异步协程循环剖析与 OpenTelemetry 遥测 (OTel Profiler)</strong>：在步骤调度前后进行耗时诊断和总线积压度量，并将性能数据流式推送至 Prometheus/Grafana 可视化。</li>
+              <li><strong>AutoGen v0.4 · 数据库持久化 Actor 状态与冷启动自动接管 (Stateful Reconstruct)</strong>：支持可插拔的 pg/redis write-ahead log 存盘，保证容器意外重启后逻辑时钟和 Mailbox 队列能自动重建无损继续。</li>
+              <li><strong>browser-use · 移动端视口指纹模拟与 GPS 弱网测试 (Mobile Emulation)</strong>：支持动态重写移动 UA、高保真物理分辨率及触摸事件映射，并支持向浏览器注入 GPS、重力加速及 3G/4G 网络限速。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1047,9 +1067,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:21:48 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:22:55 UTC</strong>.
         </div>
+        
         
         
         
