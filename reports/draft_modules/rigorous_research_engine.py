@@ -79,14 +79,15 @@ class QRRVE(object):
             file_name = r["required_file"]
             target_str = "建议"
             
-            # Match titles such as "建议一：设计 ACI 抽象层（物理命令屏蔽）"
-            # And inject verified badge
-            pattern = r"(建议[一二三四五六七八九十百千万]+：[^<]+)"
+            # Match titles such as "<div class="rec-title">建议一：设计 ACI 抽象层（物理命令屏蔽）</div>"
+            # And inject verified badge safely without duplicates
+            pattern = r'<div class="rec-title">(建议[一二三四五六七八九十百千万]+：.*?)</div>'
             def replace_fn(match):
                 matched_text = match.group(1)
-                if sug_name in matched_text and "VERIFIED" not in matched_text:
-                    return '{} <span class="verified-badge">✓ VERIFIED DRAFT ({})</span>'.format(matched_text, file_name)
-                return matched_text
+                if sug_name in matched_text:
+                    if "verified-badge" not in matched_text:
+                        return '<div class="rec-title">{} <span class="verified-badge">✓ VERIFIED DRAFT ({})</span></div>'.format(matched_text.strip(), file_name)
+                return '<div class="rec-title">{}</div>'.format(matched_text)
                 
             html = re.sub(pattern, replace_fn, html)
 

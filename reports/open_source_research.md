@@ -539,6 +539,42 @@ graph TD
 
 ---
 
+### 📅 第十五次调研（2026-05-23）: 深入分析 Aider 的动态查询仓库地图伸缩、SWE-agent 的语义轨迹少样本选择与 OpenHands 的持久沙盒 tmux 会话管理器
+
+#### 1. Aider (超大规模仓库地图伸缩机制)
+*   **核心创新：动态子映射与局部 PageRank 计算 (Dynamic Sub-mapping & Localized PageRank)**
+     *   *机制原理*：在面对包含上万文件的超大型物理仓库时，静态的前 1024 Token 仓库地图会由于依赖树过于庞杂而导致关键符号信息被稀释。Aider 引入了动态局部子映射机制。系统在运行过程中，根据 Agent 当前编辑的目标文件及其关联 of 局部调用链（Caller/Callee），动态缩小 Tree-sitter PageRank 计算的子图范围。通过局部计算生成针对当前任务的高精地图，实现按需伸缩，避免长上下文干扰。
+
+#### 2. SWE-agent (语义轨迹少样本选择)
+*   **核心创新：金牌轨迹向量检索与动态 Few-Shot 注入 (Gold Trajectory Retrieval & Dynamic Few-shot Injection)**
+     *   *机制原理*：为了引导 Agent 在面对全新工程库时采用正确的编辑策略，SWE-agent 引入了历史成功轨迹（Gold Trajectories）的语义检索机制。在 Agent 初始化阶段，系统将当前 Issue 描述进行向量编码，在预先校验通过的高分/满分修复事件库（Trajectory Vector DB）中进行相似度检索，选取最贴近当前缺陷类型的 2-3 个“完整编辑与测试动作链”作为 Few-shot 注入 Prompt。这种以史为镜的机制可防止 Agent 在不熟悉的库中误用危险命令或偏离 North Star。
+
+#### 3. OpenHands (持久沙盒 tmux 会话管理器)
+*   **核心创新：多进程持久 tmux 状态维持与流式 stdout 捕获 (Tmux-backed Persistent Sandbox Sessions)**
+     *   *机制原理*：在沙盒化运行中，如果每次执行命令都是拉起全新的单次 Subprocess，则无法维持进程间的状态（如激活的 Python 虚拟环境、配置的临时环境变量或在后台挂载的测试服务器）。OpenHands 在 Docker 容器内部通过 `tmux` 维持一个或多个常驻的 Shell 会话。Agent 发送的所有 ACI 动作都会直接被输入到该 `tmux` 实例中，并且系统通过流式读取 `tmux` 的屏幕缓冲区捕获完整的实时输出，使得多次步骤间的环境变量和运行态天然保持一致。
+
+```mermaid
+graph TD
+    subgraph Aider-RepoMap-Scaling
+        FullGraph[全库符号依赖图] -->|1. Locate target files| LocalSubGraph[提取目标文件依赖子图]
+        LocalSubGraph -->|2. Compute Local PageRank| MinMap[动态 1K Token 子地图]
+    end
+    subgraph SWE-agent-FewShot
+        NewIssue[新问题 Issue] -->|向量检索| TrajDB[(高分成功轨迹库)]
+        TrajDB -->|匹配 Top K 相似轨迹| FewShot[动态 Few-shot Prompt]
+        FewShot -->|注入上下文| AgentRunner[Agent 运行器]
+    end
+    subgraph OpenHands-Tmux
+        AgentCore[Agent 控制核心] -->|WebSocket Command| DockerDaemon[Docker Container]
+        DockerDaemon -->|Run input| Tmux[Tmux Shell Session]
+        Tmux -->|Stdout/Stderr buffer| ScreenCapture[屏幕流式捕获器]
+        ScreenCapture -->|Observation Event| AgentCore
+    end
+```
+
+
+---
+
 ### 📅 第十四次调研（2026-05-23）: 深入分析 Hugging Face smolagents 的代码智能体执行器、browser-use 的 VLM 网页端自动化交互与 Meta Llama Stack 的标准化智能体网关安全防御
 
 #### 1. Hugging Face smolagents (轻量级代码优先智能体框架)

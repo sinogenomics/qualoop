@@ -349,6 +349,7 @@
           <li><a href="#round6" class="nav-link">R6: Pydantic AI / Tracing</a></li>
           <li><a href="#round7" class="nav-link">R7: browser-use / OpenHands</a></li>
           <li><a href="#round8" class="nav-link">R8: Semantic Kernel / Langfuse</a></li>
+          <li><a href="#round9" class="nav-link">R9: Aider / SWE-agent / OpenHands</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -520,6 +521,25 @@
       </section>
 
       <!-- Comparison Matrix -->
+            <!-- Round 9 (15th Research) -->
+      <section id="round9">
+        <h2>R9：仓库地图伸缩、少样本语义轨迹与持久 sandboxed tmux 会话 (Aider & SWE-agent & OpenHands)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Aider、SWE-agent 与 OpenHands 的前沿特性</span>
+              <span class="product-meta">Dynamic Repo-map, Gold Trajectory & Tmux Sandbox</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>Aider · 动态子地图伸缩 (Dynamic Repo-map scaling)</strong>：针对万级超大代码库进行局部依赖 PageRank 重算，生成仅千级 token 大小的相关依赖小地图，降低大模型在分析全局依赖关系时的噪声干扰。</li>
+              <li><strong>SWE-agent · 动态 Few-Shot 轨迹检索 (Trajectory Selection)</strong>：在问题启动时，将 Issue 描述编码成向量，自动在历史黄金/满分成功修复轨迹库中进行余弦相似度检索，召回相似案例作为 Few-shot prompt，引导 Agent 采取更安全的修复路径。</li>
+              <li><strong>OpenHands · 持久 tmux 沙盒会话 (Persistent sandboxed tmux)</strong>：容器环境内部不采用单次 subprocess 运行，而是通过 tmux 后台会话实现多次动作之间的 Python 虚拟环境与环境变量的状态自然持久化。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -584,9 +604,11 @@
       <section id="recommendations">
         <h2>💡 Qualoop 自进化：15 项架构升级建议书</h2>
 
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:03:25 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:05:41 UTC</strong>.
         </div>
+        
         
         <div class="rec-list">
           <!-- Rec 1 -->
