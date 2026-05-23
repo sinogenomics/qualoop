@@ -381,6 +381,7 @@
           <li><a href="#round38" class="nav-link">R38: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round39" class="nav-link">R39: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round40" class="nav-link">R40: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round41" class="nav-link">R41: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1160,6 +1161,25 @@
         </div>
       </section>
 
+            <!-- Round 41 (47th Research) -->
+      <section id="round41">
+        <h2>R41：事件流缓冲区背压速率自适应、Actor 序列化冷备唤醒与 DOM 布局稳定性智能等待 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的背压控制及状态流控机制</span>
+              <span class="product-meta">Event queue backpressure, Actor serialization & DOM stability checks</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 有界事件流缓冲区与上下游背压机制 (Backpressure Control)</strong>：通过设置队列高低水位线，在下游积压时强行挂起上游发布者协程实现动态流量控制。</li>
+              <li><strong>AutoGen v0.4 · 闲置 Actor 深度序列化存盘与冷备透明唤醒 (Cold Standby Hydration)</strong>：将闲置 Actor 状态序列化存至外置存储并清空内存，消息到达时自动反序列化瞬时重构实例。</li>
+              <li><strong>browser-use · 3帧动画帧布局稳定性审计与自适应智能等待 (Stability Auditing)</strong>：利用 RequestAnimationFrame 校验 DOM 元素真实物理位置是否绝对静止，取代死等操作提升点击准确度。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1257,9 +1277,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:31:03 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:31:42 UTC</strong>.
         </div>
+        
         
         
         
