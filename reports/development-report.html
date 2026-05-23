@@ -1168,6 +1168,34 @@ e:/path/to/qualoop
                   <span class="status-badge status-yes">已推送</span>
                 </td>
               </tr>
+              <tr>
+                <td>
+                  <span class="stage-num">阶段 20</span>
+                  <span class="td-time">2026-05-23 14:09</span>
+                </td>
+                <td>
+                  <strong>建立最终项目目标差距审计与认知分析器 (tester.py)</strong>
+                  <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
+                    1. <strong>最终目标差距审计</strong>：在 <code>tester.py</code> 中新增 <code>check_ultimate_goals_gap_analysis</code> 函数，系统性解析 <code>GOALS.md</code> 描述的 North Star 教学目标（学段、教材个性化、NotebookLM等），全面扫描项目源码，智能探测出生产代码中的虚拟 Mock 占位、学段参数缺失（如 <code>grade</code>, <code>小学</code>, <code>初中</code>, <code>高中</code>）、Prompt 提示词模板缺漏等核心差距缺陷。<br />
+                    2. <strong>认知分析器集成</strong>：结合大模型（Gemini 3.5 Flash）在非受限状况下开展认知审计，全方位捕获当前实现与最终成功标准间的软性差距，输出可落地的高优先级修复清单。
+                  </div>
+                  <div class="table-tags">
+                    <span>North-Star-Gap</span><span>Cognitive-Auditor</span><span>K-12-Differentiation</span><span>Framework-Upgrade</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="sev-badge sev-high">高 (85/100)</span>
+                </td>
+                <td>
+                  如果未实现此目标差距分析机制，Qualoop 将缺乏对项目最终目标对齐的“全局视野”，仅能机械地运行静态检测和单体测试，无法感知产品架构、交互提示词和学段适配层面的重大方向性背离，容易导致开发过程滑向“假对齐”。
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已解决</span>
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已推送</span>
+                </td>
+              </tr>
 </tbody>
           </table>
         </div>

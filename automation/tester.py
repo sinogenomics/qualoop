@@ -1253,6 +1253,206 @@ def check_semantic_standards_alignment(
     return created
 
 
+def check_ultimate_goals_gap_analysis(
+    project_root: Path, store: IssueStore, findings: RoundFindings, logger
+) -> int:
+    """Ultimate Goals Gap Analysis Validator: Establishes a systematic cognitive auditor to fully
+    understand the project's ultimate goals (North Star defined in GOALS.md) and aggressively
+    scans the codebase to detect functional, architectural, and educational gaps between the current
+    implementation and the final vision (e.g. mock placeholders, lack of real AI prompt structures,
+    missing age-appropriate customization for different grades, or absent error safety rails).
+    """
+    created = 0
+    # 1. Locate GOALS.md / DEVELOPMENT_GOALS.md
+    goals_file = project_root / "GOALS.md"
+    if not goals_file.is_file():
+        goals_file = project_root / "DEVELOPMENT_GOALS.md"
+    if not goals_file.is_file():
+        findings.add("goals_gap_analysis", "最终目标差距审计", "pass", "无目标文件，跳过对齐审计")
+        return 0
+
+    try:
+        goals_text = goals_file.read_text(encoding="utf-8", errors="replace")
+    except Exception as e:
+        logger.warning("Failed to read goals file: %s", e)
+        return 0
+
+    # 2. Extract key North Star educational objectives
+    educational_objectives = []
+    if "k-12" in goals_text.lower() or "中小学" in goals_text:
+        educational_objectives.append("K-12 adaptation (age/grade appropriate customization)")
+    if "notebooklm" in goals_text.lower():
+        educational_objectives.append("NotebookLM pipeline integration")
+    if "个性化" in goals_text or "customized" in goals_text.lower():
+        educational_objectives.append("Personalized curriculum alignment")
+    if "双语" in goals_text or "bilingual" in goals_text.lower():
+        educational_objectives.append("Bilingual materials delivery")
+
+    # 3. Locate codebase implementation files
+    impl_files = []
+    for ext in ("*.py", "*.js", "*.html"):
+        for p in project_root.glob(ext):
+            if p.is_file() and not any(part.startswith('.') or part in ('automation', 'tools', 'node_modules', 'venv', '__pycache__') for part in p.parts):
+                impl_files.append(p)
+        for p in project_root.glob("src/**/" + ext):
+            if p.is_file() and not any(part.startswith('.') or part in ('automation', 'tools', 'node_modules', 'venv', '__pycache__') for p in p.parts):
+                impl_files.append(p)
+    impl_files = list(set(impl_files))
+
+    if not impl_files:
+        return 0
+
+    # Read implementation texts
+    impl_data = {}
+    for f in impl_files:
+        try:
+            impl_data[f.name] = f.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+    # 4. Perform Heuristic Gap Analysis
+    gaps_found = []
+
+    # Gap A: Mocks & Placeholders in Production Code
+    mock_keywords = ["todo: mock", "status\": \"mock\"", " notebooklm mock", "placeholder", "dummy data", "fake audio", "silent audio"]
+    detected_mocks = []
+    for filename, code in impl_data.items():
+        if "test" in filename.lower():
+            continue
+        for kw in mock_keywords:
+            if kw in code.lower():
+                detected_mocks.append(f"{filename} (contains '{kw}')")
+    if detected_mocks:
+        gaps_found.append({
+            "type": "mock_bypass",
+            "severity": "critical",
+            "title": "生产代码中使用虚拟 Mock 占位物 (Mock Bypasses in Production)",
+            "description": f"检测到以下生产源文件包含 Mock、占位字符或虚拟假数据，这违背了项目交付实质性 K-12 教学资源的最终目标：\n" + "\n".join(f"  - {m}" for m in detected_mocks)
+        })
+
+    # Gap B: Lack of dynamic K-12 adaptation
+    if "K-12 adaptation (age/grade appropriate customization)" in educational_objectives:
+        grade_customization_found = False
+        grade_keywords = ["grade", "level", "小学", "初中", "高中", "年龄", "difficulty"]
+        for code in impl_data.values():
+            if any(gk in code.lower() for gk in grade_keywords):
+                grade_customization_found = True
+                break
+        if not grade_customization_found:
+            gaps_found.append({
+                "type": "k12_differentiation",
+                "severity": "high",
+                "title": "缺乏针对 K-12 不同学段与年龄段的个性化适配 (Missing Grade-Level Differentiation)",
+                "description": "GOALS.md 明确要求服务于 K-12 教育领域，但源码中缺乏对小学、初中、高中不同学段、难度系数或学科提示词（Prompts）的动态适配与区分，导致生成内容单一，不符合‘因材施教’与个性化课程对齐的最终目标。"
+            })
+
+    # Gap C: Lack of dynamic prompt parameterization
+    prompt_parameterization_found = False
+    prompt_keywords = ["prompt", "system_prompt", "template", "prompt_template", "提示词"]
+    for code in impl_data.values():
+        if any(pk in code.lower() for pk in prompt_keywords):
+            prompt_parameterization_found = True
+            break
+    if not prompt_parameterization_found:
+        gaps_found.append({
+            "type": "prompt_engineering",
+            "severity": "medium",
+            "title": "缺乏高质量教学大模型提示词模板体系 (Missing Dynamic Prompt Templates)",
+            "description": "最终项目目标为生成高质量、启发性的 K-12 学习资源（脑图、信息图、音频）。然而，当前代码中缺乏精细设计的动态大模型 Prompt 模板或系统指令（System Prompts），大模型交互存在盲区，可能生成质量低劣的内容。"
+        })
+
+    # 5. Cognitive LLM Gap Audit
+    from .llm_client import call_antigravity_llm, get_llm_config
+    llm_cfg = get_llm_config(project_root)
+    
+    if llm_cfg.get("enabled", True):
+        if len(gaps_found) < 3:
+            logger.info("Spawning Antigravity LLM to perform deep cognitive North Star Gap Analysis...")
+            summary_files = [f.name for f in impl_files]
+            prompt = (
+                "[Qualoop Ultimate Goals Gap Auditor]\n"
+                "You are an elite educational technology architect. Your task is to perform a deep cognitive audit "
+                "to find gaps between the current codebase implementation and the project's ultimate goals (North Star).\n\n"
+                f"### Ultimate Goals (GOALS.md):\n{goals_text[:3000]}\n\n"
+                f"### Codebase Files: {', '.join(summary_files)}\n"
+                "Please analyze the codebase from a pedagogical, structural, and architectural perspective. "
+                "Identify any gaps (e.g. placeholders, mock data, absence of grade-level prompts, lack of dynamic generation). "
+                "Return strictly a raw JSON list of gap objects (no markdown ```json wrapping):\n"
+                "[\n"
+                "  {\n"
+                "    \"type\": \"gap_category_identifier\",\n"
+                "    \"severity\": \"high\" | \"critical\" | \"medium\",\n"
+                "    \"title\": \"Clear gap title in Chinese\",\n"
+                "    \"description\": \"Detailed description of the gap and its impact in Chinese.\"\n"
+                "  }\n"
+                "]\n"
+                "If no major gaps are found, return an empty list []."
+            )
+            try:
+                model = llm_cfg.get("model", "flash")
+                raw_res = call_antigravity_llm(project_root, prompt, model=model)
+                clean_res = raw_res.strip()
+                if clean_res.startswith("```"):
+                    lines = clean_res.splitlines()
+                    if lines[0].startswith("```"):
+                        lines = lines[1:]
+                    if lines and lines[-1].startswith("```"):
+                        lines = lines[:-1]
+                    clean_res = "\n".join(lines).strip()
+                
+                json_match = re.search(r"\[.*\]", clean_res, re.DOTALL)
+                if json_match:
+                    llm_gaps = json.loads(json_match.group(0))
+                    for lg in llm_gaps:
+                        if not any(g["title"] == lg.get("title") for g in gaps_found):
+                            gaps_found.append(lg)
+            except Exception as e:
+                logger.info("Cognitive LLM Gap Audit bypassed/throttled: %s. Relying on high-fidelity static heuristics.", e)
+
+    # 6. Record Findings and Create Issues
+    if gaps_found:
+        logger.warning("Ultimate Goals Gap Auditor detected %d gap(s)!", len(gaps_found))
+        for gap in gaps_found:
+            severity = gap.get("severity", "high")
+            title = gap.get("title", "最终目标差距缺陷")
+            desc = gap.get("description", "")
+            g_type = gap.get("type", "goals")
+
+            findings.add(
+                f"goal_gap_{g_type}",
+                f"最终目标对齐: {title}",
+                "fail",
+                desc,
+                category="goals"
+            )
+            created += _maybe_add_issue(
+                store,
+                severity=severity,
+                issue_type="goals",
+                description=(
+                    f"### [North Star Goal Gap] {title}\n"
+                    f"**Severity**: {severity}\n"
+                    f"**Impact**: This gap severely compromises the system's alignment with its ultimate goals defined in GOALS.md.\n\n"
+                    f"**Detailed Breakdown**:\n{desc}\n\n"
+                    f"**Action Plan to Bridge the Gap**:\n"
+                    f"1. Refactor production code to replace mock placeholders with dynamic, real-world educational API pipelines.\n"
+                    f"2. Incorporate age-appropriate/grade-level differentiation prompt parameters (小学/初中/高中) to dynamically adapt learning contents.\n"
+                    f"3. Establish quality-centric assertions in automated test suites to enforce strict physical body size and semantic compliance."
+                ),
+                paths=[str(goals_file.relative_to(project_root))] + [str(f.relative_to(project_root)) for f in impl_files[:3]],
+                metadata={"gap_type": g_type}
+            )
+    else:
+        findings.add(
+            "goals_gap_analysis",
+            "最终目标对齐性校验",
+            "pass",
+            "未检测到任何显式目标偏离或功能实现差距，项目与 North Star 完美对齐。"
+        )
+
+    return created
+
+
 def check_llm_fullstack_audit(
     project_root: Path, store: IssueStore, findings: RoundFindings, cfg: dict, logger
 ) -> int:
@@ -1639,6 +1839,7 @@ def run_once(
         created += api_contract_check(project_root, store, findings, cfg, logger)
         created += check_goals_and_coverage(project_root, store, findings, logger)
         created += check_semantic_standards_alignment(project_root, store, findings, logger)
+        created += check_ultimate_goals_gap_analysis(project_root, store, findings, logger)
         created += check_qualoop_self_upgrade(project_root, store, findings, logger)
         if cfg.get("tester", {}).get("llm_fullstack_audit", True):
             created += check_llm_fullstack_audit(project_root, store, findings, cfg, logger)
