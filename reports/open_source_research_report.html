@@ -375,6 +375,7 @@
           <li><a href="#round32" class="nav-link">R32: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round33" class="nav-link">R33: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round34" class="nav-link">R34: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round35" class="nav-link">R35: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1040,6 +1041,25 @@
         </div>
       </section>
 
+            <!-- Round 35 (41st Research) -->
+      <section id="round35">
+        <h2>R35：步骤边界 Schema 拦截校验、Actor 拓扑实时导出一致与 CDP 请求限速弱网 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的契约校验与拓扑活性监控</span>
+              <span class="product-meta">Schema enforcement, Topology audit & CDP network throttling</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 步骤边界动态 Schema 校验与自适应强转 (Schema Coercion)</strong>：在步骤边界对流入事件进行强类型结构化校验，支持自动类型强转及缺省字段填充，提高容错韧性。</li>
+              <li><strong>AutoGen v0.4 · 运行时多智能体拓扑实时导出与悬空路由接管 (Topology Audit)</strong>：捕获活跃 Actor 间 gRPC 订阅连接生成 GraphJSON，配合活性审计识别并秒级重定向悬空路由。</li>
+              <li><strong>browser-use · CDP 物理网络限速模拟与断网离线自愈测试 (Network Throttling)</strong>：利用 CDP 接口对单个 Context 虚拟出精确的下行/上行带宽限速和网络丢包延迟，并支持完全 offline 状态下的 ServiceWorker 可用性分析。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1131,9 +1151,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:25:20 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:26:11 UTC</strong>.
         </div>
+        
         
         
         
