@@ -380,6 +380,7 @@
           <li><a href="#round37" class="nav-link">R37: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round38" class="nav-link">R38: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round39" class="nav-link">R39: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round40" class="nav-link">R40: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -1140,6 +1141,25 @@
         </div>
       </section>
 
+            <!-- Round 40 (46th Research) -->
+      <section id="round40">
+        <h2>R40：嵌套子工作流隔离、Actor 线程池亲和绑定与浏览器上下文快照共享 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的编排隔离与亲和计算</span>
+              <span class="product-meta">Hierarchical workflows, CPU affinity & session state snapshotting</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 多级子工作流分级编排与局部上下文内存隔离 (Hierarchical Orchestration)</strong>：支持嵌套的子工作流 DAG 并限制内部状态对全局的污染，实现强隔离的高内聚开发模式。</li>
+              <li><strong>AutoGen v0.4 · 异构工作组线程池隔离与系统内核 CPU 亲和度绑定 (Affinity Binding)</strong>：区分高低优先级控制 Actor，独立线程池分配，并可指定底层物理核心绑定避免关键路由时钟抖动。</li>
+              <li><strong>browser-use · 浏览器状态快照序列化与免登录跨 Agent Session 接力 (Session Snapshotting)</strong>：完整序列化 Session Cookie/LocalStorage/IndexedDB 并在新页面中一键导入，消除了多次登录流程。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -1236,9 +1256,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:30:24 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:31:03 UTC</strong>.
         </div>
+        
         
         
         
