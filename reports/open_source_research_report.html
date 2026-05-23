@@ -355,6 +355,7 @@
           <li><a href="#round12" class="nav-link">R12: Workflows / Semantic Kernel / E2B</a></li>
           <li><a href="#round13" class="nav-link">R13: Dify / Zod / LangSmith</a></li>
           <li><a href="#round14" class="nav-link">R14: smolagents / SK / OpenHands</a></li>
+          <li><a href="#round15" class="nav-link">R15: Swarm / Pydantic AI / E2B SDK</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -640,6 +641,25 @@
         </div>
       </section>
 
+            <!-- Round 15 (21st Research) -->
+      <section id="round15">
+        <h2>R15：无状态 Handoff 路由流、Pydantic AI 校验自愈环与 E2B SDK 沙盒文件读写规范 (OpenAI Swarm & Pydantic AI & E2B SDK)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">Swarm, Pydantic AI 与 E2B SDK 的开发契约设计</span>
+              <span class="product-meta">Stateless Handoff, validation loops & virtual disk access</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>OpenAI Swarm · 无状态 Handoff 路由 (Stateless Agent Transfer)</strong>：利用 Tool 直接返回下一个 Agent 实例，实现去中心化的轻量控制路由切换，极大简化多智能体并发拓扑流转。</li>
+              <li><strong>Pydantic AI · 强校验异常自愈循环 (Validation feedback loops)</strong>：捕获强类型 Pydantic 错误异常并自动归纳出不合规字段与期望格式，反哺给 LLM 作为 Observation 实现快速自愈。</li>
+              <li><strong>E2B SDK · 沙盒高层文件系统 API (Virtual Filesystem API)</strong>：不通过脆弱的 Bash 字符串包装写入磁盘，利用基于 gRPC 的 Filesystem API 直接对隔离 VM 执行读写，彻底规避操作系统转义兼容风险。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -710,9 +730,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:09:02 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:09:45 UTC</strong>.
         </div>
+        
         
         
         

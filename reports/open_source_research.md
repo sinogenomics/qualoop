@@ -539,6 +539,43 @@ graph TD
 
 ---
 
+### 📅 第二十一次调研（2026-05-23）: 深入分析 OpenAI Swarm 的无状态 Handoff 路由流、Pydantic AI 的结构化校验错误反馈环与 E2B 的沙盒高层文件系统 API
+
+#### 1. OpenAI Swarm (无状态 Handoff 路由流设计)
+*   **核心创新：Tool-based Agent Transfer 与无状态控制循环 (Stateless Handoff Routing)**
+     *   *机制原理*：传统多智能体设计（如 LangGraph）依赖厚重的全局状态图和外部 Checkpoint 数据库进行节点转移。Swarm 提出了极致去中心化的“无状态 Handoff”设计。每一个 Agent 本质上只是一组 Instructions 和 Tools（Python 函数）的组合。Agent 如果需要进行控制权交接，只需在 Tool 函数中直接返回另一个 `Agent` 实例。Swarm 的轻量级 Runner 在检测到返回值为 Agent 对象时，自动在内存中切换当前会话上下文的 System Prompt 目标，实现极致灵巧、低延迟的角色状态流转。
+
+#### 2. Pydantic AI (强 Schema 运行时校验错误反馈循环)
+*   **核心创新：JSON 校验异常自动归纳与模型自愈输入 (Structured Validation Error Loops)**
+     *   *机制原理*：智能体系统在输出结构化数据（如 Scorer 导出的打分结构、Executor 生成的代码 metadata）时，若模型直接生成了破损字段或类型错误的 JSON，会引发后端崩溃。Pydantic AI 结合 Pydantic v2 构建了闭环自愈网关。在检测到 `ValidationError` 后，框架会自动拦截异常，利用 Pydantic 内置的结构化报错解析器，提炼出清晰的字段路径和期望类型说明，作为 Observation 实时追加到对话流中并二次调起大模型，实现零外部干预的类型字段自愈。
+
+#### 3. E2B Sandboxes (基于高层 ACI 的沙盒文件系统 API)
+*   **核心创新：抽象文件系统读写 API 与进程交互控制 (High-level Virtual Disk API)**
+     *   *机制原理*：传统 ACI 执行器常使用 Bash 命令（如 `cat << 'EOF' > file.py`）往沙盒写入文件，这极易因为包含反引号、括号或 Unicode 特殊符号引发 Shell 解析报错。E2B 沙盒抛弃了低效的 Shell 级物理命令包装，在 microVM 宿主通信通道上封装了高层的 Filesystem API。Agent 通过直接调用 API（如 `sandbox.filesystem.write(path, content)`) 读写磁盘。底层的 gRPC 传输保证了数据的字节完备性，彻底规避了操作系统命令转义引起的格式腐化风险。
+
+```mermaid
+graph TD
+    subgraph Swarm-Stateless-Handoff
+        Runner[Swarm Client Run] -->|1. Run active agent| A1[Tester Agent]
+        A1 -->|2. Call transfer_to_scorer tool| Tool[Tool returns ScorerAgent]
+        Tool -->|3. Intercept & Switch prompt| Runner
+        Runner -->|4. Run active agent| A2[Scorer Agent]
+    end
+    subgraph Pydantic-AI-Feedback
+        LLM[LLM JSON Generator] -->|Invalid schema payload| Parser[Pydantic Validator]
+        Parser -->|ValidationError Exception| Formatter[Error Parser & path extractor]
+        Formatter -->|Observation: Path 'id' must start with QL-| LLM
+    end
+    subgraph E2B-Filesystem-API
+        Agent[Qualoop Executor] -->|sandbox.filesystem.write| SDK[E2B Python SDK]
+        SDK -->|Binary stream over KVM| VM[Firecracker MicroVM Sandbox]
+        VM -->|Direct virtual disk write| Disk[Sandbox Filesystem]
+    end
+```
+
+
+---
+
 ### 📅 第二十次调研（2026-05-23）: 深入分析 smolagents 的代码型工具调用安全解释器、Semantic Kernel 的原生函数绑定序列化与 OpenHands 的命令安全扫描插件
 
 #### 1. Hugging Face smolagents (代码工具调用与本地内存解释器沙箱)
