@@ -172,7 +172,7 @@ def _maybe_add_issue(store: IssueStore, **kwargs) -> int:
     # Global guard to ensure we call the LLM at most once per run.
     global _llm_called
     try:
-        from .llm_client import get_llm_config, call_antigravity_llm
+        from automation.llm_client import get_llm_config, call_antigravity_llm
         llm_cfg = get_llm_config(project_root)
         # Only invoke the LLM if it hasn't been called yet this run and the
         # provider is Antigravity (default). Future enhancements could make this
@@ -460,6 +460,7 @@ def audit_uploads_dir(
     orphans: list[str] = []
     total_bytes = 0
     file_count = 0
+    corrupted_files: list[str] = []
 
     for f in uploads.rglob("*"):
         if not f.is_file():
@@ -473,6 +474,55 @@ def audit_uploads_dir(
             large.append(f"{rtl} ({st.st_size // (1024*1024)}MB)")
         if age_h > orphan_hours and st.st_size > 1024 * 1024:
             orphans.append(f"{rtl} ({age_h:.0f}h)")
+
+        # Generic deliverables integrity check
+        ext = f.suffix.lower()
+        if ext in (".png", ".pdf", ".mp3", ".mp4", ".json", ".md"):
+            try:
+                file_bytes = f.read_bytes()
+                if ext == ".png":
+                    if not file_bytes.startswith(b"\x89PNG"):
+                        corrupted_files.append(f"{f.name} (并非有效的 PNG 格式)")
+                        continue
+                    try:
+                        from PIL import Image
+                        import io
+                        with Image.open(io.BytesIO(file_bytes)) as img:
+                            width, height = img.size
+                            if width <= 10 or height <= 10:
+                                corrupted_files.append(f"{f.name} (PNG 尺寸过小: {width}x{height})")
+                    except Exception as e:
+                        corrupted_files.append(f"{f.name} (Pillow 无法解析: {e})")
+                elif ext == ".pdf":
+                    if not file_bytes.startswith(b"%PDF"):
+                        corrupted_files.append(f"{f.name} (并非有效的 PDF 格式)")
+                        continue
+                    if b"/Page" not in file_bytes and b"/Type /Page" not in file_bytes:
+                        corrupted_files.append(f"{f.name} (PDF 缺少 Page 节点定义)")
+                elif ext == ".mp3":
+                    if not (file_bytes.startswith(b"ID3") or file_bytes.startswith(b"\xff\xfb") or file_bytes.startswith(b"\xff\xf3")):
+                        corrupted_files.append(f"{f.name} (并非有效的 MP3 格式)")
+                        continue
+                    zero_count = file_bytes.count(b'\x00')
+                    if len(file_bytes) > 0 and zero_count > len(file_bytes) * 0.8:
+                        corrupted_files.append(f"{f.name} (MP3 静音/零字节比例过高)")
+                elif ext == ".mp4":
+                    if b"ftyp" not in file_bytes and not file_bytes.startswith(b"\x00\x00\x00"):
+                        corrupted_files.append(f"{f.name} (并非有效的 MP4 格式)")
+                elif ext == ".json":
+                    try:
+                        m_data = json.loads(file_bytes.decode("utf-8", errors="replace"))
+                        if m_data.get("status") == "mock":
+                            corrupted_files.append(f"{f.name} (包含 mock 状态标记)")
+                    except Exception as e:
+                        corrupted_files.append(f"{f.name} (JSON 格式解析失败: {e})")
+                elif ext == ".md":
+                    if not file_bytes.startswith(b"#"):
+                        corrupted_files.append(f"{f.name} (Markdown 缺少标题)")
+                    if b"This is a mock placeholder" in file_bytes:
+                        corrupted_files.append(f"{f.name} (包含 mock 占位文本)")
+            except Exception as e:
+                corrupted_files.append(f"{f.name} (校验异常: {e})")
 
     detail = f"{file_count} files, {total_bytes // (1024*1024)}MB total"
     if large:
@@ -492,10 +542,111 @@ def audit_uploads_dir(
             "; ".join(orphans[:5]),
             category="ops",
         )
-    if not large and not orphans:
+    
+    if corrupted_files:
+        findings.add(
+            "deliverable_corruption",
+            "已生成交付物完整性",
+            "fail",
+            "; ".join(corrupted_files[:5]),
+            category="quality",
+        )
+        created += _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="content_quality",
+            description=(
+                f"在 uploads/ 目录中检测到损坏或无法打开的交付物文件: {', '.join(corrupted_files[:5])}。\n"
+                "这严重偏离了提供实质性、可打开的高品质学习资源的 North Star 目标，请重新生成或清理。"
+            ),
+            paths=["uploads"],
+        )
+    else:
+        findings.add("deliverable_corruption", "已生成交付物完整性", "pass", "未检测到损坏的交付物文件")
+
+    if not large and not orphans and not corrupted_files:
         findings.add("uploads_dir", "uploads 目录", "pass", detail)
     else:
-        findings.add("uploads_dir", "uploads 目录", "warn", detail + f"; large={len(large)} orphan={len(orphans)}")
+        findings.add("uploads_dir", "uploads 目录", "warn", detail + f"; large={len(large)} orphan={len(orphans)} corrupted={len(corrupted_files)}")
+    return created
+
+
+def check_frontend_backend_contract_alignment(
+    project_root: Path, store: IssueStore, findings: RoundFindings, logger
+) -> int:
+    """Scan frontend files (JS) and backend files (Python) to check if the file format extensions
+    defined for each educational content type are aligned, preventing file opening and corruption bugs.
+    """
+    created = 0
+    py_extensions = {}
+    py_file = project_root / "app.py"
+    if py_file.is_file():
+        try:
+            content = py_file.read_text(encoding="utf-8", errors="replace")
+            # Scan CONTENT_ARTIFACTS pattern
+            for match in re.finditer(r'"(audio|video|infographic|mindmap|slides|quiz)"\s*:\s*\{[^}]*?"ext"\s*:\s*"(\.[a-zA-Z0-9]+)"', content):
+                content_type = match.group(1)
+                ext = match.group(2).replace(".", "")
+                py_extensions[content_type] = ext
+            # Scan extensions map pattern
+            for match in re.finditer(r'"(audio|video|infographic|mindmap|slides|quiz)"\s*:\s*"(\.[a-zA-Z0-9]+)"', content):
+                content_type = match.group(1)
+                ext = match.group(2).replace(".", "")
+                py_extensions[content_type] = ext
+        except Exception as e:
+            logger.warning("Failed to parse app.py extensions: %s", e)
+
+    js_extensions = {}
+    js_file = project_root / "script.js"
+    if js_file.is_file():
+        try:
+            content = js_file.read_text(encoding="utf-8", errors="replace")
+            # Scan extensions mapping block: extensions = { ... }
+            block_match = re.search(r'extensions\s*=\s*\{([^}]+)\}', content)
+            if block_match:
+                block_content = block_match.group(1)
+                for line in block_content.splitlines():
+                    match = re.search(r'([a-zA-Z0-9_]+)\s*:\s*[\'"]([a-zA-Z0-9_]+)[\'"]', line)
+                    if match:
+                        content_type = match.group(1)
+                        ext = match.group(2)
+                        js_extensions[content_type] = ext
+        except Exception as e:
+            logger.warning("Failed to parse script.js extensions: %s", e)
+
+    mismatches = []
+    if py_extensions and js_extensions:
+        for ct in ["audio", "video", "infographic", "mindmap", "slides", "quiz"]:
+            py_ext = py_extensions.get(ct)
+            js_ext = js_extensions.get(ct)
+            if py_ext and js_ext and py_ext != js_ext:
+                mismatches.append(f"{ct} ({js_ext} in JS vs {py_ext} in Python)")
+
+    if mismatches:
+        findings.add(
+            "extension_contract_mismatch",
+            "前后端文件格式对齐",
+            "fail",
+            "; ".join(mismatches),
+            category="contract",
+        )
+        created += _maybe_add_issue(
+            store,
+            severity="high",
+            issue_type="contract_mismatch",
+            description=(
+                f"前后端文件格式定义存在不一致，这会导致浏览器保存的文件带有错误的后缀，使得操作系统和应用程序完全无法正常打开这些文件。\n\n"
+                f"检测到的不一致映射为：{', '.join(mismatches)}。\n\n"
+                "请检查并统一 app.py 中的 CONTENT_ARTIFACTS/extensions 映射与 script.js 中的 getDownloadFilename() 字典后缀。"
+            ),
+            paths=["app.py", "script.js"],
+        )
+    else:
+        if py_extensions and js_extensions:
+            findings.add("extension_contract_mismatch", "前后端文件格式对齐", "pass", "所有学习材料的下载文件格式前后端已完全对齐一致")
+        else:
+            findings.add("extension_contract_mismatch", "前后端文件格式对齐", "pass", "未检测到完整的配置文件映射，跳过对比")
+            
     return created
 
 
@@ -872,7 +1023,7 @@ def auto_update_development_report(project_root: Path, modified_files: list[str]
             "}\n"
         )
         
-        from .llm_client import call_antigravity_llm, get_llm_config
+        from automation.llm_client import call_antigravity_llm, get_llm_config
         llm_cfg = get_llm_config(project_root)
         model = llm_cfg.get("model", "flash")
         
@@ -1902,6 +2053,7 @@ def run_once(
         created += check_semantic_standards_alignment(project_root, store, findings, logger)
         created += check_ultimate_goals_gap_analysis(project_root, store, findings, logger)
         created += check_qualoop_self_upgrade(project_root, store, findings, logger)
+        created += check_frontend_backend_contract_alignment(project_root, store, findings, logger)
         if cfg.get("tester", {}).get("llm_fullstack_audit", True):
             created += check_llm_fullstack_audit(project_root, store, findings, cfg, logger)
 
