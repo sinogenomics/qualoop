@@ -368,6 +368,7 @@
           <li><a href="#round25" class="nav-link">R25: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round26" class="nav-link">R26: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#round27" class="nav-link">R27: LlamaIndex / AutoGen / browser-use</a></li>
+          <li><a href="#round28" class="nav-link">R28: LlamaIndex / AutoGen / browser-use</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -900,6 +901,25 @@
         </div>
       </section>
 
+            <!-- Round 28 (34th Research) -->
+      <section id="round28">
+        <h2>R28：子工作流契约化数据同步、邮箱 API 限频退避与 CDP 原生网络拦截审计 (LlamaIndex & AutoGen & browser-use)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">LlamaIndex, AutoGen 与 browser-use 的契约通信与限流审计机制</span>
+              <span class="product-meta">Contracted sub-context, sliding throttler & CDP payload audit</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>LlamaIndex Workflows · 子工作流契约化输入输出与快照双向同步 (Contracted Sync)</strong>：通过强类型 Input/Output 规范嵌套子图通信契约，子图启动时克隆父图数据，结束后自动双向写回合并，避免数据孤岛。</li>
+              <li><strong>AutoGen v0.4 · 滑动窗口 API 限流器与并发退避抖动 (Rate-limit Jitter)</strong>：集成 429 报错感知的滑动窗口出站缓冲器，结合指数退避和随机并发抖动消除 Thundering Herd 效应，保障高频调用强壮度。</li>
+              <li><strong>browser-use · CDP 协议原生网络流量拦截与敏感 Payload 扫描 (CDP Network Audit)</strong>：利用 Playwright 的 CDP 接口劫持未在 DOM 渲染 of 底层网络报文，实时正则检索密钥泄露及未授权外传，构建网络物理层安全围栏。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -984,9 +1004,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:19:26 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:20:10 UTC</strong>.
         </div>
+        
         
         
         
