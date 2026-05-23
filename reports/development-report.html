@@ -1140,7 +1140,35 @@ e:/path/to/qualoop
                   <span class="status-badge status-yes">已推送</span>
                 </td>
               </tr>
-            </tbody>
+                          <tr>
+                <td>
+                  <span class="stage-num">阶段 19</span>
+                  <span class="td-time">2026-05-23 14:04</span>
+                </td>
+                <td>
+                  <strong>新增目标语义尺寸对齐验证与自升级漏洞修复 (tester.py)</strong>
+                  <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--muted);">
+                    1. <strong>目标语义尺寸对齐验证</strong>：在 <code>tester.py</code> 中引入 <code>check_semantic_standards_alignment</code> 函数，静态审计并强制业务端测试套件（如 <code>simple_e2e_test.py</code>）执行硬性物理文件大小与内容特征断言，解决 K-12 教学材料生成中空壳 Mock 产物（如 126 字节静音音频或 1 像素透明 PNG）穿透检测的问题，实现 North Star 实质性对齐。<br />
+                    2. <strong>自升级校验修复</strong>：解决 <code>check_qualoop_self_upgrade</code> 正常分支下返回 None 引起的 TypeError 异常缺陷，提高系统稳健性。
+                  </div>
+                  <div class="table-tags">
+                    <span>Goal-Compliance</span><span>Semantic-Validator</span><span>Bug-Fix</span><span>TypeError</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="sev-badge sev-high">高 (85/100)</span>
+                </td>
+                <td>
+                  若未修复该问题，大模型在自动优化或外部调用中生成的空壳占位文件将继续引发假绿通过，严重偏离 K-12 最终交付物质量目标；同时，自升级框架在自检时会因类型错误持续崩溃，导致自主进化闭环瘫痪。
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已解决</span>
+                </td>
+                <td>
+                  <span class="status-badge status-yes">已推送</span>
+                </td>
+              </tr>
+</tbody>
           </table>
         </div>
       </section>

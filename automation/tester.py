@@ -1159,6 +1159,8 @@ def check_qualoop_self_upgrade(
     except Exception as e:
         logger.warning("Failed to run Qualoop self-upgrade check: %s", e)
         
+    return created
+        
 def check_semantic_standards_alignment(
     project_root: Path, store: IssueStore, findings: RoundFindings, logger
 ) -> int:
