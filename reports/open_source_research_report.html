@@ -361,6 +361,7 @@
           <li><a href="#round18" class="nav-link">R18: LangGraph / AutoGen / smolagents</a></li>
           <li><a href="#round19" class="nav-link">R19: E2B / browser-use / LlamaIndex</a></li>
           <li><a href="#round20" class="nav-link">R20: LlamaIndex / AutoGen / OpenHands</a></li>
+          <li><a href="#round21" class="nav-link">R21: smolagents / AutoGen / E2B</a></li>
           <li><a href="#comparison" class="nav-link">📊 跨维度技术矩阵</a></li>
           <li><a href="#recommendations" class="nav-link">💡 15项升级建议书</a></li>
         </ul>
@@ -760,6 +761,25 @@
         </div>
       </section>
 
+            <!-- Round 21 (27th Research) -->
+      <section id="round21">
+        <h2>R21：多智能体动态 Handoff、外部队列 Actor 路由与沙盒数据共享 (smolagents & AutoGen & E2B)</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <span class="product-title">smolagents, AutoGen 与 E2B 的协作移交与多节点同步</span>
+              <span class="product-meta">Dynamic handoffs, Broker-backed Actor queues & shared MicroVM volumes</span>
+            </div>
+            <p><strong>学术与工程突破：</strong></p>
+            <ul class="feature-list">
+              <li><strong>smolagents · 动态 Handoff 与 Token 压缩 (Cooperative Handoff)</strong>：各子 Agent 可被 Master 动态调配，在控制流移交时自动对其历史进行摘要提炼与过滤，显著规避上下文窗口膨胀。</li>
+              <li><strong>AutoGen v0.4 · 消息队列 Actor 编排与负载均衡 (Message Broker)</strong>：支持 Redis/RabbitMQ 外部消息总线，基于 Protobuf 进行异步通信及故障容错路由，彻底实现多主机弹性扩展。</li>
+              <li><strong>E2B · 共享文件磁盘卷与状态共享镜像 (Shared Volumes)</strong>：支持在微虚拟机沙盒间挂载共享卷，省去多沙盒代码传输耗时，并可通过内存快照镜像实现 VM 运行态零秒加载。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="comparison">
         <h2>📊 跨维度技术矩阵对比分析</h2>
         <div class="table-container">
@@ -837,9 +857,11 @@
         
         
         
+        
         <div id="qrrve-status" style="background: rgba(62, 207, 142, 0.1); border: 1px solid #3ecf8e; padding: 1rem; border-radius: 8px; margin: 2rem 0; color: #e2e8f0;">
-            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:14:32 UTC</strong>.
+            <strong style="color: #3ecf8e;">✓ Qualoop QRRVE Active Validation:</strong> All 15 architectural suggestions have been fully verified with Python 3 mock prototypes and passed dynamic unit tests at <strong>2026-05-23 01:15:11 UTC</strong>.
         </div>
+        
         
         
         
