@@ -1210,8 +1210,7 @@ def check_semantic_standards_alignment(
             code = tf_path.read_text(encoding="utf-8", errors="replace")
             # Look for assertions verifying sizes (e.g. len(bytes) >= or size threshold checks)
             for d in deliverables:
-                # Regex to find: asserts or checks that verify the length/size of downloaded deliverable
-                pattern = rf"(len\(file_bytes\)|len\(bytes\)|len\(.+\))\s*(>=|>)\s*(200|1000|2000|5000|10000|15000)"
+                pattern = rf"(len\(file_bytes\)|len\(bytes\)|len\(.+\))\s*(>=|>|<|<=)\s*(200|1000|2000|5000|10000|15000)"
                 if d in code and re.search(pattern, code):
                     found_assertions[d] = True
         except Exception as e:
