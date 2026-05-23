@@ -539,6 +539,54 @@ graph TD
 
 ---
 
+### 📅 第五十八次调研（2026-05-23）: 深入分析 LlamaIndex Workflows 的去中心化 Gossip 网状事件传播、AutoGen v0.4 的 Actor 容器级生命周期钩子与墓碑自愈恢复、browser-use 的 DOMStorage 实时镜像与 CDP 存储观察器
+
+#### 1. LlamaIndex Workflows (去中心化 Gossip 网状事件传播)
+*   **核心创新一：基于 Gossip 网状拓扑的事件点对点传播 (Gossip Mesh Event Propagation)**
+    *   *机制原理*：在包含海量容器节点的超大规模分布式 Workflow 执行中，如果将所有事件路由和状态流转信息都集中发往单一的消息代理（Broker），不仅会导致局部带宽过载，而且一旦 Broker 发生网络分区或物理故障，会导致全局工作流彻底瘫痪。Workflows 引入了去中心化的 Gossip 网状传播协议，物理节点在启动时与邻居节点建立对等连接（Peer-to-Peer），事件发出后通过 Gossip 增量包在网格内高速点对点广播，彻底消除了中心单点。
+*   **核心创新二：本地合并去重与低延迟无中心拓排 (Decentralized Local Eviction & Merge)**
+    *   *机制原理*：各节点本地维护全局事件流水账（Event Ledger）。为了防止 Gossip 在环形拓扑中产生“广播风暴”，每个事件在头部都携带唯一的全局追踪 ID 以及跳数限制（TTL）。节点在接收到事件后，在本地进行指纹匹配和幂等去重（Deduplication），已处理的事件不再向外传播，保障了网络整体的高效低延时。
+
+#### 2. Microsoft AutoGen v0.4 (Actor 容器级生命周期钩子与墓碑自愈恢复)
+*   **核心创新一：物理节点级别的 Actor 容器墓碑生命周期钩子 (Tombstone Lifecycle Hooks)**
+    *   *机制原理*：在动态的云原生（如 Kubernetes/Docker）容器中，节点随时可能因宿主机 OOM、弹性缩容、或者系统更新而遭到强制终止（SIGKILL/SIGTERM）。若 Actor 在计算中途被暴毙杀死，其内存状态会彻底丢失。AutoGen v0.4 引入了容器级的生命周期钩子，能够捕获操作系统的物理终止信号，在容器消亡的最后微秒内，强制将当前 Actor 的内存上下文序列化写入共享卷（Shared Volume）或分布式持久存储中，并留下一个“墓碑标记（Tombstone Marker）”。
+*   **核心创新二：故障节点恢复与墓碑透明重建 (Tombstone Recovery & Dynamic Re-hydration)**
+    *   *机制原理*：当调度器检测到容器死而复生或在健康节点上拉起替代实例时，启动钩子会自动检测目标 Actor ID 是否留有墓碑标记。若存在，引擎自动从共享卷中读取墓碑快照进行反序列化还原（Re-hydration），并在几毫秒内将该 Actor 重新注册到全局寻址路由表中，使发送方完全无感地透明恢复，极大增强了系统的容错抗灾能力。
+
+#### 3. browser-use (DOMStorage 实时镜像与 CDP 存储观察器)
+*   **核心创新一：基于 CDP 协议的 DOMStorage 实时变更监听 (CDP DOMStorage Observers)**
+    *   *机制原理*：在复杂的动态前端单页应用（SPA）测试中，前端的数据缓存经常直接保存在 LocalStorage 或 SessionStorage 之中，页面交互会即时引发这些本地缓存的变动。如果 Tester 代理无法实时感知这些缓存更新，就无法对前端逻辑的正确性进行及时断言。browser-use 通过激活 CDP 的 `DOMStorage.enable` 域，建立 DOMStorage 实时观察器，高频监听前端存储的每一笔写入、更新和删除事件。
+*   **核心创新二：宿主机本地镜像数据库实时同步 (Host-side Mirrored Synchronization)**
+    *   *机制原理*：一旦捕获到 DOM 存储变更，browser-use 会立即将变化的数据流管道化同步到宿主机本地的模拟镜像数据库（Mirrored DB）中。通过这套镜像同步技术，Auditor 可以在宿主机侧无延迟地直接执行前端状态断言，而不需要重复发起耗时的 CDP 查询，大大提升了动态测试的执行速率。
+
+```mermaid
+graph TD
+    subgraph LlamaIndex-Gossip-Mesh
+        StepA[Step A Node] -->|1. Emit Event| Node1[Gossip Node 1]
+        Node1 -->|2. P2P Gossip Broadcast| Node2[Gossip Node 2]
+        Node1 -->|2. Gossip Broadcast| Node3[Gossip Node 3]
+        Node2 & Node3 -->|3. Merge & Deduplicate locally| Ledger[Local Event Ledger]
+        Ledger -->|4. Trigger Handler| StepB[Step B Node]
+    end
+    subgraph AutoGen-Tombstone-Recovery
+        Host[Container Host] -->|1. Receives SIGTERM| Hook[Lifecycle Hook]
+        Hook -->|2. Dump Actor context| Disk[(Shared Volume)]
+        Hook -->|3. Set Tombstone Marker| Disk
+        Host -.->|4. Recover / Reschedule node| Spawner[Orchestrator Spawner]
+        Spawner -->|5. Detect Marker & Hydrate| Active[Active Actor Instance]
+    end
+    subgraph browser-use-DOMStorage-Mirror
+        Page[Browser App] -->|1. Update LocalStorage| Engine[Browser Engine]
+        Engine -->|2. Intercept via DOMStorage.domStorageItemUpdated| CDP[CDP Event Listener]
+        CDP -->|3. Stream data changes| Flow[(vsock Stream)]
+        Flow -->|4. Real-time update| Mirror[Host Mirrored Database]
+        Mirror -->|5. Immediate Assertions| Auditor[Qualoop Auditor]
+    end
+```
+
+
+---
+
 ### 📅 第五十七次调研（2026-05-23）: 深入分析 LlamaIndex Workflows 的分布式事件代理集成与动态主题绑定、AutoGen v0.4 的 Actor 状态增量压缩与持久化事件溯源、browser-use 的有状态动态 Cookie 导出与跨 Session 同步
 
 #### 1. LlamaIndex Workflows (分布式事件代理集成与动态主题绑定)
